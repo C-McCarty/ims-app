@@ -1,0 +1,113 @@
+.App {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+}
+
+main {
+    width: 70%;
+    height: 80%;
+    padding: 20px;
+    border-radius: 20px;
+    background-color: #fff;
+    box-shadow: 0 5px 10px #0008;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+main h1 {
+    flex-basis: 3rem;
+}
+main > form {
+    flex-basis: 50%;
+}
+
+.manageFormSelect {
+    color: #0088FF;
+    font-weight: bold;
+    font-size: 2rem;
+}
+
+button {
+    padding: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    font-size: 1rem;
+    border-radius: 3rem;
+    height: 5rem;
+    border: 0.25rem solid #0088FF;
+    background-color: transparent;
+    color: #0088FF;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.125s;
+}
+button:hover {
+    background-color: #0002;
+}
+button:active {
+    color: #fff;
+    background-color: #0088FF;
+}
+
+
+
+table {
+    width: 100%;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+    font-size: 2rem;
+}
+thead {
+    background-color: #000;
+    color: #fff;
+}
+tbody {
+    background-color: #ddd;
+}
+td:nth-child(even) {
+    background-color: #eee;
+}
+th, td {
+    font-family: "Oxygen Mono", 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+td.count {
+    text-align: right;
+}
+td.edit {
+    width: 3.5rem;
+}
+tr:hover {
+    background-color: #bbb;
+}
+tr:hover td:nth-child(even) {
+    background-color: #ccc;
+}
+thead:hover tr {
+    background-color: #222 !important;
+}
+#dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    height: 60vh;
+    width: 90%;
+}
+.widget {
+    background-color: #eee;
+    margin: 1rem;
+    border-radius: 10px;
+    padding: 1rem;
+}
+.widget.s2x2,
+.widget.s2x1 {
+    grid-column: span 2;
+}
+.widget.s2x2,
+.widget.s1x2 {
+    grid-row: span 2;
+}
