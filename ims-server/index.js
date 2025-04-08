@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const PORT = process.env.PORT || 5000;
 const app = express();
 const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
+const cors = require("cors");
 
 mongoose.connect(URL).then(() => {
     console.log("MongoDB connected successfully");
