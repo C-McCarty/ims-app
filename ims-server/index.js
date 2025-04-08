@@ -2,9 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 5000;
 const app = express();
-const URI = "mongodb+srv://" + process.env.USER + process.env.PASS + process.env.DATABASE_URL;
+const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
 
-mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
+mongoose.connect(URL).then(() => {
     console.log("MongoDB connected successfully");
 }).catch((err) => {
     console.log("Error connecting to MongoDB:", err);
