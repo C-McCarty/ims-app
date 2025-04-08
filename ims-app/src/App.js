@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import './styles/App.css';
 import SignInForm from './comp/SignInForm';
 import Header from './comp/Header';
@@ -6,7 +7,10 @@ import EditForm from './comp/EditForm';
 import Error404 from './comp/Error404';
 
 function App() {
+    const DB_URL = "https://tmcf-ims-app.onrender.com/";
+
     const [signedIn, toggleSignedIn] = useState(false);
+    const [viewData, setViewData] = useState([]);
     const handleSignIn = () => {        
         setTimeout(() => {
             toggleSignedIn(true);
@@ -62,6 +66,14 @@ function App() {
                 </div>
             );
         } else if (page[0] == 2) {
+            axios.get(`${DB_URL}/get${page[1]}`).then(response => {
+                setViewData(response.data);
+            });
+            fetch(`get${page[1]}`).then(
+                response => response.json()
+            ).then(data => {
+                setViewData(JSON.stringify(data));
+            }).catch(err => console.log(err));
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} />
