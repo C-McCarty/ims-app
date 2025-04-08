@@ -1,8 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const PORT = 3001;
+const PORT = process.env.PORT || 5000;
 const app = express();
-const URI = "mongodb+srv://cmccarty7:UblUHPwcN5Vt0x3O@ims.ipblnuv.mongodb.net/Inventory?retryWrites=true&w=majority&appName=IMS";
+const URI = "mongodb+srv://" + process.env.USER + process.env.PASS + process.env.DATABASE_URL;
 
 mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
     console.log("MongoDB connected successfully");
@@ -176,5 +176,5 @@ app.put("/updateMarketProducts", (req, res) => {
 
 
 app.listen(PORT, () => {
-    console.log("App is running on http://localhost:" + PORT)
+    console.log("Server is running on Port " + PORT)
 })
