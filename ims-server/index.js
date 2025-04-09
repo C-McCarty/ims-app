@@ -38,7 +38,7 @@ app.get("/getProducts", (req, res) => {
         res.status(500).send("Error fetching products.");
     });
 });
-app.get("/getProductIDs", (req,res) => {
+app.get("/getProductsIDs", (req,res) => {
     MODEL_PRODUCT.find({}).then(products => {
         const PROD_ARR = [];
         for (let i = 0; i < products.length; i++) {
@@ -61,7 +61,7 @@ app.get("/getMarkets", (req, res) => {
         res.status(500).send("Error fetching markets.");
     });
 });
-app.get("/getMarketProducts", (req, res) => {
+app.get("/getMarketsProducts", (req, res) => {
     MODEL_MARKET.find({}).then(markets => {
         const MARK_ARR = [];
         for (let i = 0; i < markets.length; i++) {
