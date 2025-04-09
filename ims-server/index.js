@@ -38,7 +38,7 @@ app.get("/getProducts", (req, res) => {
         res.status(500).send("Error fetching products.");
     });
 });
-app.get("/getProductIDs", (req,res) => {
+app.get("/getProductsIDs", (req,res) => {
     MODEL_PRODUCT.find({}).then(products => {
         const PROD_ARR = [];
         for (let i = 0; i < products.length; i++) {
@@ -61,7 +61,7 @@ app.get("/getMarkets", (req, res) => {
         res.status(500).send("Error fetching markets.");
     });
 });
-app.get("/getMarketProducts", (req, res) => {
+app.get("/getMarketsProducts", (req, res) => {
     MODEL_MARKET.find({}).then(markets => {
         const MARK_ARR = [];
         for (let i = 0; i < markets.length; i++) {
@@ -78,7 +78,7 @@ app.get("/getMarketProducts", (req, res) => {
 });
 
 // Adding functions
-app.post("/addProduct", (req, res) => {
+app.post("/addProducts", (req, res) => {
     const { name, category, isTaxable, count } = req.body;
     MODEL_PRODUCT.collection.insertOne({
         name: name,
@@ -93,7 +93,7 @@ app.post("/addProduct", (req, res) => {
     });
 });
 
-app.post("/addMarket", (req, res) => {
+app.post("/addMarkets", (req, res) => {
     const { name, date, products } = req.body;
     MODEL_MARKET.collection.insertOne({
         name: name,
@@ -108,7 +108,7 @@ app.post("/addMarket", (req, res) => {
 });
 
 // Removing functions
-app.delete("/deleteProduct", (req, res) => {
+app.delete("/deleteProducts", (req, res) => {
     const id = req.body;
     MODEL_PRODUCT.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
@@ -119,7 +119,7 @@ app.delete("/deleteProduct", (req, res) => {
     });
 });
 
-app.delete("/deleteMarket", (req, res) => {
+app.delete("/deleteMarkets", (req, res) => {
     const id = req.body;
     MODEL_MARKET.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
@@ -131,7 +131,7 @@ app.delete("/deleteMarket", (req, res) => {
 });
 
 // Editing functions
-app.put("/updateProduct", (req, res) => {
+app.put("/updateProducts", (req, res) => {
     const { id, name, category, isTaxable, count } = req.body;
     MODEL_PRODUCT.collection.updateOne({_id: id}, {
         name: name,
@@ -146,7 +146,7 @@ app.put("/updateProduct", (req, res) => {
         res.status(500).send("Error updating product.");
     });
 });
-app.put("/updateMarket", (req, res) => {
+app.put("/updateMarkets", (req, res) => {
     const { id, name, date, products } = req.body;
     MODEL_PRODUCT.collection.updateOne({_id: id}, {
         $set: {
