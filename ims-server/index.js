@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+import { ObjectID } from mongoose;
 const cors = require("cors");
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -109,7 +110,7 @@ app.post("/addMarkets", (req, res) => {
 
 // Removing functions
 app.delete("/deleteProduct", (req, res) => {
-    const id = req.body;
+    const id = ObjectID(req.body);
     MODEL_PRODUCT.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
         res.send("Deleted Product");
@@ -120,7 +121,7 @@ app.delete("/deleteProduct", (req, res) => {
 });
 
 app.delete("/deleteMarket", (req, res) => {
-    const id = req.body;
+    const id = ObjectID(req.body);
     MODEL_MARKET.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
         res.send("Deleted Market");
@@ -179,4 +180,4 @@ app.put("/updateMarketProducts", (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Server is running on Port " + PORT)
-})
+});
