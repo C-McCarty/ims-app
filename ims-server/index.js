@@ -1,6 +1,5 @@
 const express = require("express");
 const mongoose = require("mongoose");
-import { ObjectID } from mongoose;
 const cors = require("cors");
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -110,7 +109,7 @@ app.post("/addMarkets", (req, res) => {
 
 // Removing functions
 app.delete("/deleteProduct", (req, res) => {
-    const id = ObjectID(req.body);
+    const id = mongoose.Types.ObjectId(req.body);
     MODEL_PRODUCT.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
         res.send("Deleted Product");
@@ -121,7 +120,7 @@ app.delete("/deleteProduct", (req, res) => {
 });
 
 app.delete("/deleteMarket", (req, res) => {
-    const id = ObjectID(req.body);
+    const id = mongoose.Types.ObjectId(req.body);
     MODEL_MARKET.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
         res.send("Deleted Market");
@@ -134,11 +133,13 @@ app.delete("/deleteMarket", (req, res) => {
 // Editing functions
 app.put("/updateProducts", (req, res) => {
     const { id, name, category, isTaxable, count } = req.body;
-    MODEL_PRODUCT.collection.updateOne({_id: id}, {
-        name: name,
-        category: category,
-        isTaxable: isTaxable,
-        count: count
+    MODEL_PRODUCT.collection.updateOne({_id: mongoose.Types.ObjectId(id)}, {
+        $set: {
+            name: name,
+            category: category,
+            isTaxable: isTaxable,
+            count: count
+        }
     }).then(result => {
         console.log(result);
         res.send("Product updated");
@@ -149,7 +150,7 @@ app.put("/updateProducts", (req, res) => {
 });
 app.put("/updateMarkets", (req, res) => {
     const { id, name, date, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({_id: id}, {
+    MODEL_PRODUCT.collection.updateOne({_id: mongoose.Types.ObjectId(id)}, {
         $set: {
             name: name,
             date: date,
@@ -165,7 +166,7 @@ app.put("/updateMarkets", (req, res) => {
 });
 app.put("/updateMarketProducts", (req, res) => {
     const { id, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({_id: id}, {
+    MODEL_PRODUCT.collection.updateOne({_id: mongoose.Types.ObjectId(id)}, {
         $set: { products: products }
     }).then(result => {
         console.log(result);
