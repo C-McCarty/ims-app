@@ -109,8 +109,8 @@ app.post("/addMarkets", (req, res) => {
 
 // Removing functions
 app.delete("/deleteProduct", (req, res) => {
-    const id = mongoose.Types.ObjectId(req.body);
-    MODEL_PRODUCT.collection.deleteOne({_id: id}).then(result => {
+    const { id } = req.body;
+    MODEL_PRODUCT.collection.deleteOne({_id: mongoose.Types.ObjectId(id)}).then(result => {
         console.log(result);
         res.send("Deleted Product");
     }).catch(err => {
@@ -120,8 +120,8 @@ app.delete("/deleteProduct", (req, res) => {
 });
 
 app.delete("/deleteMarket", (req, res) => {
-    const id = mongoose.Types.ObjectId(req.body);
-    MODEL_MARKET.collection.deleteOne({_id: id}).then(result => {
+    const { id } = req.body;
+    MODEL_MARKET.collection.deleteOne({_id: mongoose.Types.ObjectId(id)}).then(result => {
         console.log(result);
         res.send("Deleted Market");
     }).catch(err => {
