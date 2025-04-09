@@ -108,7 +108,7 @@ app.post("/addMarkets", (req, res) => {
 });
 
 // Removing functions
-app.delete("/deleteProducts", (req, res) => {
+app.delete("/deleteProduct", (req, res) => {
     const id = req.body;
     MODEL_PRODUCT.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
@@ -119,7 +119,7 @@ app.delete("/deleteProducts", (req, res) => {
     });
 });
 
-app.delete("/deleteMarkets", (req, res) => {
+app.delete("/deleteMarket", (req, res) => {
     const id = req.body;
     MODEL_MARKET.collection.deleteOne({_id: id}).then(result => {
         console.log(result);
