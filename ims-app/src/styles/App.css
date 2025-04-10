@@ -4,6 +4,7 @@
     width: 100vw;
     height: 100vh;
     justify-content: center;
+    background-color: #fff;
 }
 
 main {
@@ -149,11 +150,11 @@ table table {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
-
-#modal .closeBtn {
+.closeBtn {
     position: absolute;
-    top: 3.5vh;
+    top: 1vh;
     right: 1vh;
     height: 8vh;
     width: 8vh;
@@ -251,4 +252,57 @@ table table {
 }
 .listItemDetails.hidden {
     height: 0vh;
+}
+
+#addModalWrap {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0vh;
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: moveIn 1s;
+    overflow: hidden;
+}
+#addModal {
+    width: 100vw;
+    background-color: #fff;
+    position: relative;
+    padding: 1rem;
+    padding-top: 9vh;
+    box-shadow: 0 5px 10px #0003;
+}
+#addForm {
+    display: flex;
+    flex-wrap: wrap;
+}
+#addForm > div {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+}
+#addForm label {
+    flex-basis: 100%;
+    padding: 0.5rem;
+    color: #0088FF;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+#addForm div *:not(label) {
+    margin-left: 1rem;
+    font-size: 1rem;
+    padding: 0.125rem;
+}
+#addForm div:has(button) {
+    margin-top: 1rem;
+    justify-content: center;
+    flex-grow: 1;
+}
+#addModal #addForm button {
+    width: 50vw;
+    margin: 0;
 }

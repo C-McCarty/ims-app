@@ -29,7 +29,7 @@ export default function EditForm({collection, type, DB_URL}) {
         axios.delete(`${DB_URL}/delete${collection}`, {data: {id: delName}});
         setLoading(true);
         axios.get(`${DB_URL}/get${collection}s`).then(response => {
-            const names = response.data.map(item => ({_id: item._id, name: item.name}))
+            const names = response.data.map(item => ({_id: item._id, name: item.name}));
             setProdIDs(names);
         }).catch(err => {
             console.error(err);

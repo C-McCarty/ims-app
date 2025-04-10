@@ -1,7 +1,6 @@
 .editorForm {
     display: flex;
     flex-wrap: wrap;
-    width: 40%;
     justify-content: center;
 }
 .editorForm div {

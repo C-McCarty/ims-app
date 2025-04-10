@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './styles/App.css';
 import SignInForm from './comp/SignInForm';
@@ -7,6 +7,7 @@ import EditForm from './comp/EditForm';
 import Error404 from './comp/Error404';
 import Loading from './comp/Loading';
 import ListItem from './comp/ListItem';
+import AddModal from './comp/AddModal';
 
 function App() {
     // const DB_URL = process.env.DB_URL;
@@ -18,6 +19,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [collection, setCollection] = useState("");
     const [modalOpen, toggleModalOpen] = useState(false);
+    const [addModal, toggleAddModal] = useState(false);
 
     const handleSignIn = (DB, PWD) => {
         toggleSignedIn(true);
@@ -100,6 +102,15 @@ function App() {
         }
     }, [viewItems]);
 
+    const appRef = useRef(null);
+    const handleFullScreen = e => {
+        console.log("fired")
+        appRef.current.requestFullscreen().catch(err => {
+            console.warn(err);
+        });
+    }
+
+
     if (signedIn) {
         // Dashboard
         if (page == 0) {
@@ -151,36 +162,13 @@ function App() {
             );
         } else if (page == 2) {
             return (
-                <div className="App">
+                <div className="App" onClick={handleFullScreen} ref={appRef}>
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
                         <h1>View {collection}</h1>
                         {loading ? <Loading /> :
-                        // <table>
-                        //     <thead>
-                        //         {collection === "Products" ?
-                        //         <tr>
-                        //             <th>Product Name</th>
-                        //             <th>Category</th>
-                        //             <th>Taxable?</th>
-                        //             <th>Count</th>
-                        //             <th></th>
-                        //         </tr>
-                        //         :
-                        //         <tr>
-                        //             <th>Market Name</th>
-                        //             <th>Market Date</th>
-                        //             <th>Products</th>
-                        //             <th></th>
-                        //         </tr>
-                        //         }
-                        //     </thead>
-                        //     <tbody>
-                        //         {viewItems}
-                        //     </tbody>
-                        // </table>
                         <div id='list'>
-                            <div className='listItem'>
+                            <div className='listItem' onClick={()=>{toggleAddModal(true)}}>
                                 <div className='add'></div>
                                 <h3>Add Item</h3>
                             </div>
@@ -188,6 +176,7 @@ function App() {
                         </div>
                         }
                     </main>
+                    <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} />
                 </div>
             );
         } else if (page == 3) {
