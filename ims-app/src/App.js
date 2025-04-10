@@ -5,21 +5,27 @@ import SignInForm from './comp/SignInForm';
 import Header from './comp/Header';
 import EditForm from './comp/EditForm';
 import Error404 from './comp/Error404';
+import Loading from './comp/Loading';
+import ListItem from './comp/ListItem';
 
 function App() {
-    const DB_URL = "https://tmcf-ims-app.onrender.com/";
+    // const DB_URL = process.env.DB_URL;
+    const DB_URL = "https://tmcf-ims-app.onrender.com";
 
     const [signedIn, toggleSignedIn] = useState(false);
     const [viewData, setViewData] = useState([]);
-    const handleSignIn = () => {        
-        setTimeout(() => {
-            toggleSignedIn(true);
-        }, 0);
+    const [viewItems, setViewItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [collection, setCollection] = useState("");
+    const [modalOpen, toggleModalOpen] = useState(false);
 
-        setPage([0, "Dashboard"]);
+    const handleSignIn = (DB, PWD) => {
+        toggleSignedIn(true);
+        setPage(0);
+        setCollection("Dashboard");
     }
     // 0 = Dashboard
-    const [page, setPage] = useState([0, "Dashboard"]);
+    const [page, setPage] = useState(0);
 
     const [manageFormSelect, setManageFormSelect] = useState(0);
     const handleManageFormSelect = (e) => {
@@ -29,15 +35,80 @@ function App() {
     useEffect(() => {
         setManageFormSelect(0);
     }, [page]);
+    
+    useEffect(() => {
+        if (page == 2) {
+            setLoading(true);
+            // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
+            axios.get(`${DB_URL}/get${collection}`).then(response => {
+                setViewData(response.data);
+            });
+        }
+    }, [page, collection]);
+
+    useEffect(() => {
+        if (viewData.length > 0) {
+            if (collection === "Products") {
+                const list = viewData.map((item, i) => {
+                    return (
+                        <ListItem collection={collection} name={item.name} category={item.category} taxable={(item.isTaxable) ? "Yes" : "No"} count={item.count} />
+                    );
+                });
+                setViewItems(list);
+            } else if (collection === "Markets") {
+                const list = viewData.map((item, i) => {
+                    return (
+                        <tr>
+                            <td>{item.name}</td>
+                            <td>{new Date(item.date).toDateString()}</td>
+                            <td>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Allocated</th>
+                                            <th>Remaining</th>
+                                            <th>Sold</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {item.products.map((prod, i) => {
+                                        return (
+                                            <tr>
+                                                <td>{prod.name}</td>
+                                                <td className='count'>{prod.countAllocated}</td>
+                                                <td className='count'>{prod.countRemaining}</td>
+                                                <td className='count'>{prod.countAllocated - prod.countRemaining}</td>
+                                            </tr>
+                                        )})}
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td className="edit">Edit</td>
+                        </tr>
+                    );
+                });
+                setViewItems(list);
+            }
+            setLoading(false);
+        }
+    }, [viewData, page]);
+
+    useEffect(() => {
+        if (viewItems.length > 0 && viewItems.length == viewData.length) {
+            setLoading(false);
+        }
+    }, [viewItems]);
 
     if (signedIn) {
         // Dashboard
-        if (page[0] == 0) {
+        if (page == 0) {
             return (
                 <div className="App">
-                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} />
+                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>{page[1]}</h1>
+                        <h1>{collection}</h1>
+                        <div id="settings" onClick={()=>{toggleModalOpen(true)}}></div>
                         <div id="dashboard">
                             <div className="widget s1x2">
                                 <h2>Recent Markets</h2>
@@ -53,89 +124,78 @@ function App() {
                             </div>
                         </div>
                     </main>
+                    {modalOpen ?
+                    <div id='modalWrap'>
+                        <div id="modal">
+                            <h2>McCarty Farm Inventory Management System</h2>
+                            <div className='closeBtn' onClick={()=>{toggleModalOpen(false)}}>
+                                <div></div>
+                                <div></div>
+                            </div>
+                            <h3>Developer: Cameron McCarty</h3>
+                            <div id='logout' onClick={()=>{toggleSignedIn(false); toggleModalOpen(false)}}></div>
+                        </div>
+                    </div>
+                    : null}
                 </div>
             );
-        } else if (page[0] == 1) {
+        } else if (page == 1) {
             return (
                 <div className="App">
-                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} />
+                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>I Want to... <select className="manageFormSelect" onChange={handleManageFormSelect}><option value="0">Add</option><option value="1">Remove</option></select> a {page[1]}</h1>
-                        <EditForm item={page[1]} type={manageFormSelect} />
+                        <h1>I Want to... <select className="manageFormSelect" value={manageFormSelect} onChange={handleManageFormSelect}><option value="0">Add</option><option value="1">Remove</option></select> a {collection}</h1>
+                        <EditForm collection={collection} type={manageFormSelect} DB_URL={DB_URL} />
                     </main>
                 </div>
             );
-        } else if (page[0] == 2) {
-            axios.get(`${DB_URL}/get${page[1]}`).then(response => {
-                setViewData(response.data);
-            });
-            fetch(`get${page[1]}`).then(
-                response => response.json()
-            ).then(data => {
-                setViewData(JSON.stringify(data));
-            }).catch(err => console.log(err));
+        } else if (page == 2) {
             return (
                 <div className="App">
-                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} />
+                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>View {page[1]}</h1>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Category</th>
-                                    <th>Taxable?</th>
-                                    <th>Count</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Splits</td>
-                                    <td>Freeze-Dried Candy</td>
-                                    <td>Yes</td>
-                                    <td className="count">12</td>
-                                    <td className="edit"></td>
-                                </tr>
-                                <tr>
-                                    <td>Happy Farmers</td>
-                                    <td>Freeze-Dried Candy</td>
-                                    <td>Yes</td>
-                                    <td className="count">23</td>
-                                    <td className="edit"></td>
-                                </tr>
-                                <tr>
-                                    <td>Galaxy Brains</td>
-                                    <td>Freeze-Dried Candy</td>
-                                    <td>Yes</td>
-                                    <td className="count">14</td>
-                                    <td className="edit"></td>
-                                </tr>
-                                <tr>
-                                    <td>Hand Soap</td>
-                                    <td>Natural Home Care</td>
-                                    <td>Yes</td>
-                                    <td className="count">9</td>
-                                    <td className="edit"></td>
-                                </tr>
-                                <tr>
-                                    <td>Roasted Vegetable Mix</td>
-                                    <td>Freeze-Dried Food</td>
-                                    <td>No</td>
-                                    <td className="count">9</td>
-                                    <td className="edit"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <h1>View {collection}</h1>
+                        {loading ? <Loading /> :
+                        // <table>
+                        //     <thead>
+                        //         {collection === "Products" ?
+                        //         <tr>
+                        //             <th>Product Name</th>
+                        //             <th>Category</th>
+                        //             <th>Taxable?</th>
+                        //             <th>Count</th>
+                        //             <th></th>
+                        //         </tr>
+                        //         :
+                        //         <tr>
+                        //             <th>Market Name</th>
+                        //             <th>Market Date</th>
+                        //             <th>Products</th>
+                        //             <th></th>
+                        //         </tr>
+                        //         }
+                        //     </thead>
+                        //     <tbody>
+                        //         {viewItems}
+                        //     </tbody>
+                        // </table>
+                        <div id='list'>
+                            <div className='listItem'>
+                                <div className='add'></div>
+                                <h3>Add Item</h3>
+                            </div>
+                            {viewItems}
+                        </div>
+                        }
                     </main>
                 </div>
             );
-        } else if (page[0] == 3) {
+        } else if (page == 3) {
             return (
                 <div className="App">
-                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} />
+                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>{page[1]}</h1>
+                        <h1>{collection}</h1>
                         <div className="card">
                             <h2>Recent Markets</h2>
                         </div>

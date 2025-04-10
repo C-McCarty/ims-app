@@ -110,7 +110,7 @@ app.post("/addMarkets", (req, res) => {
 // Removing functions
 app.delete("/deleteProduct", (req, res) => {
     const { id } = req.body;
-    MODEL_PRODUCT.collection.deleteOne({ id: mongoose.Types.ObjectId(id) }).then(result => {
+    MODEL_PRODUCT.collection.deleteOne({ _id: mongoose.Types.ObjectId(id) }).then(result => {
         console.log(result);
         res.send("Deleted Product");
     }).catch(err => {
@@ -121,7 +121,7 @@ app.delete("/deleteProduct", (req, res) => {
 
 app.delete("/deleteMarket", (req, res) => {
     const { id } = req.body;
-    MODEL_MARKET.collection.deleteOne({ id: mongoose.Types.ObjectId(id) }).then(result => {
+    MODEL_MARKET.collection.deleteOne({ _id: mongoose.Types.ObjectId(id) }).then(result => {
         console.log(result);
         res.send("Deleted Market");
     }).catch(err => {
@@ -133,7 +133,7 @@ app.delete("/deleteMarket", (req, res) => {
 // Editing functions
 app.put("/updateProducts", (req, res) => {
     const { id, name, category, isTaxable, count } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ id: mongoose.Types.ObjectId(id) }, {
+    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
         $set: {
             name: name,
             category: category,
@@ -150,7 +150,7 @@ app.put("/updateProducts", (req, res) => {
 });
 app.put("/updateMarkets", (req, res) => {
     const { id, name, date, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ id: mongoose.Types.ObjectId(id) }, {
+    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
         $set: {
             name: name,
             date: date,
@@ -166,7 +166,7 @@ app.put("/updateMarkets", (req, res) => {
 });
 app.put("/updateMarketProducts", (req, res) => {
     const { id, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ id: mongoose.Types.ObjectId(id) }, {
+    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
         $set: { products: products }
     }).then(result => {
         console.log(result);
