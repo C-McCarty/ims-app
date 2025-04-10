@@ -7,12 +7,9 @@
 }
 
 main {
-    width: 70%;
-    height: 80%;
-    padding: 20px;
-    border-radius: 20px;
+    width: 100vw;
+    height: 90vh;
     background-color: #fff;
-    box-shadow: 0 5px 10px #0008;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -57,8 +54,7 @@ button:active {
 
 table {
     width: 100%;
-    border-radius: 0 0 20px 20px;
-    overflow: hidden;
+    overflow: scroll;
     font-size: 2rem;
 }
 thead {
@@ -82,16 +78,20 @@ td.edit {
     width: 3.5rem;
 }
 tr:hover {
-    background-color: #bbb;
+    background-color: #bbbe;
 }
 tr:hover td:nth-child(even) {
-    background-color: #ccc;
+    background-color: #ccc5;
 }
 thead:hover tr {
     background-color: #222 !important;
 }
+table table {
+    border-radius: 0;
+}
 #dashboard {
-    display: grid;
+    /* display: grid; */
+    display: none;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
     height: 60vh;
@@ -110,4 +110,145 @@ thead:hover tr {
 .widget.s2x2,
 .widget.s1x2 {
     grid-row: span 2;
+}
+
+#settings {
+    height: 8vh;
+    width: 8vh;
+    background-image: url(../media/settings.svg);
+    background-repeat: no-repeat;
+    background-size: 80%;
+    background-position: center;
+    background-color: #FFF;
+    border-radius: 100%;
+    position: absolute;
+    bottom: 1vh;
+    right: 1vh;
+}
+
+#modalWrap {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    animation: moveIn 1s;
+}
+#modal {
+    background-color: #FFF;
+    height: 95vh;
+    padding-top: 35vh;
+    padding-bottom: 35vh;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#modal .closeBtn {
+    position: absolute;
+    top: 3.5vh;
+    right: 1vh;
+    height: 8vh;
+    width: 8vh;
+    animation: fadeIn 2s;
+}
+.closeBtn div {
+    background-color: #0088FF;
+    width: 1vh;
+    height: 8vh;
+    position: absolute;
+    left: 3.5vh;
+    transform: rotate(45deg);
+}
+.closeBtn div:nth-child(2) {
+    transform: rotate(135deg);
+}
+
+#modal h2, #modal h3 {
+    flex-basis: 100%;
+    text-align: center;
+}
+
+#logout {
+    height: 8vh;
+    width: 8vh;
+    background-image: url(../media/logout.svg);
+    background-repeat: no-repeat;
+    background-size: 80%;
+    background-position: center;
+    background-color: #0088FF;
+    border-radius: 100%;
+}
+
+@keyframes moveIn {
+    0% {
+        bottom: 100vh;
+    }
+    100% {
+        bottom: 0;
+    }
+}
+@keyframes fadeIn {
+    0%,50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.listItem {
+    box-shadow: 0 0 10px #0003;
+    width: 90vw;
+    border-radius: 20px;
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.listItemMain {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.listItemMain h3 {
+    font-size: 1.5rem;
+    flex-basis: 60%;
+}
+.listItemMain .details,
+.listItemMain .edit {
+    height: 5vh;
+    width: 5vh;
+    background-image: url(../media/description.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80%;
+}
+.listItemMain .edit {
+    background-image: url(../media/edit.svg);
+}
+.listItemDetails {
+    width: 90%;
+    overflow: hidden;
+    height: 11rem;
+    transition: all 1s;
+}
+.listItemDetails h4 {
+    margin: 0.25rem;
+}
+.listItemDetails p {
+    margin: 0;
+    margin-left: 1rem;
+}
+.listItemDetails.hidden {
+    height: 0vh;
 }

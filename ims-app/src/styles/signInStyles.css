@@ -1,5 +1,5 @@
 .signInForm {
-    height: 50vh;
+    max-height: 60vh;
     width: 50vw;
     border-radius: 20px;
     padding: 5%;
@@ -32,16 +32,26 @@
 .signInForm button {
     width: 20%;
 }
-
+.signInForm .error {
+    color: red;
+}
 
 @media screen and (max-width: 500px) {
     .signInForm {
         width: 100vw;
+        height: 90vh;
         border-radius: 0;
         box-shadow: none;
     }
+    .signInForm > div {
+        width: 90vw;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .signInForm input {
+        flex-grow: 1;
+    }
     .signInForm button {
-        width: 30%;
-        margin-left: 35%;
+        width: unset;
     }
 }
