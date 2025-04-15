@@ -1,29 +1,38 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { resolveInclude } = require("ejs");
 const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
+app.use(express.json());
 const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
 
 mongoose.connect(URL).then(() => {
     console.log("MongoDB connected successfully");
 }).catch((err) => {
-    console.log("Error connecting to MongoDB:", err);
+    console.error(`Error connecting to MongoDB: ${err}`);
 });
 
 const SCHEMA_PRODUCT = mongoose.Schema({
-    _id: String,
+    _id: mongoose.Types.ObjectId,
     name: String,
     category: String,
     isTaxable: Boolean,
-    count: Number
+    count: Number,
+    deleted: Boolean
 });
 const SCHEMA_MARKET = mongoose.Schema({
-    _id: String,
+    _id: mongoose.Types.ObjectId,
     name: String,
     date: Date,
-    products: Array
+    products: [{
+        _id: mongoose.Types.ObjectId,
+        name: String,
+        countAllocated: Number,
+        countRemaining: Number
+    }],
+    deleted: Boolean
 });
 
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
@@ -31,154 +40,103 @@ const MODEL_MARKET = mongoose.model("markets", SCHEMA_MARKET);
 
 // Getter functions
 app.get("/getProducts", (req, res) => {
-    MODEL_PRODUCT.find({}).then(products => {
+    MODEL_PRODUCT.find({ deleted: false }).then(products => {
         res.json(products);
     }).catch(err => {
         console.log(err);
-        res.status(500).send("Error fetching products.");
-    });
-});
-app.get("/getProductIDs", (req,res) => {
-    MODEL_PRODUCT.find({}).then(products => {
-        const PROD_ARR = [];
-        for (let i = 0; i < products.length; i++) {
-            PROD_ARR.push({
-                _id: products[i]._id,
-                name: products[i].name,
-            });
-        }
-        res.json(PROD_ARR);
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error fetching products.");
+        res.status(500).send(`Error fetching products: ${err}`);
     });
 });
 app.get("/getMarkets", (req, res) => {
-    MODEL_MARKET.find({}).then(markets => {
+    MODEL_MARKET.find({ deleted: false }).then(markets => {
         res.json(markets);
     }).catch(err => {
         console.log(err);
-        res.status(500).send("Error fetching markets.");
-    });
-});
-app.get("/getMarketProducts", (req, res) => {
-    MODEL_MARKET.find({}).then(markets => {
-        const MARK_ARR = [];
-        for (let i = 0; i < markets.length; i++) {
-            MARK_ARR.push({
-                _id: markets[i]._id,
-                products: markets[i].products
-            });
-        }
-        res.json(MARK_ARR);
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error fetching markets.");
+        res.status(500).send(`Error fetching markets: ${err}`);
     });
 });
 
 // Adding functions
-app.post("/addProducts", (req, res) => {
+const notDeleted = false;
+app.post("/addProducts", async (req, res) => {
     const { name, category, isTaxable, count } = req.body;
-    MODEL_PRODUCT.collection.insertOne({
-        name: name,
-        category: category,
-        isTaxable: isTaxable,
-        count: count
-    }).then(() => {
-        res.send("Product inserted!");
-    }).catch(err => {
-        console.log("Error inserting product:", err);
-        res.status(500).send("Error inserting product.");
-    });
+    try {
+        const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count, notDeleted });
+        await PRODUCT.save();
+        res.send(`Product "${name}" inserted successfully.`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error adding product: ${err}`);
+    }
 });
 
-app.post("/addMarkets", (req, res) => {
+app.post("/addMarkets", async (req, res) => {
     const { name, date, products } = req.body;
-    MODEL_MARKET.collection.insertOne({
-        name: name,
-        date: date,
-        products: products
-    }).then(() => {
-        res.send("Market inserted!");
-    }).catch(err => {
-        console.log("Error inserting market:", err);
-        res.status(500).send("Error inserting market.");
-    });
+    try {
+        const MARKET = new MODEL_MARKET({ name, date, products, notDeleted });
+        await MARKET.save();
+        res.send(`Market "${name}" inserted successfully.`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error adding market: ${err}`);
+    }
 });
 
 // Removing functions
-app.delete("/deleteProduct", (req, res) => {
+app.put("/deleteProduct", async (req, res) => {
     const { id } = req.body;
-    MODEL_PRODUCT.collection.deleteOne({ _id: mongoose.Types.ObjectId(id) }).then(result => {
-        console.log(result);
-        res.send("Deleted Product");
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error deleting product.");
-    });
+    try {
+        await MODEL_PRODUCT.findByIdAndUpdate(id, { deleted: true });
+        res.send(`Deleted product.`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error deleting product: ${err}`);
+    }
 });
 
-app.delete("/deleteMarket", (req, res) => {
+app.put("/deleteMarket", async (req, res) => {
     const { id } = req.body;
-    MODEL_MARKET.collection.deleteOne({ _id: mongoose.Types.ObjectId(id) }).then(result => {
-        console.log(result);
-        res.send("Deleted Market");
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error deleting market.");
-    });
+    try {
+        await MODEL_MARKET.findByIdAndUpdate(id, { deleted: true });
+        res.send(`Deleted market.`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error deleting market: ${err}`);
+    }
 });
 
 // Editing functions
-app.put("/updateProducts", (req, res) => {
+app.put("/updateProducts", async (req, res) => {
     const { id, name, category, isTaxable, count } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
-        $set: {
+    try {
+        await MODEL_PRODUCT.findByIdAndUpdate(id, {
             name: name,
             category: category,
             isTaxable: isTaxable,
             count: count
-        }
-    }).then(result => {
-        console.log(result);
-        res.send("Product updated");
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error updating product.");
-    });
+        });
+        res.send(`Updated product "${name}"`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error deleting market: ${err}`);
+    }
 });
-app.put("/updateMarkets", (req, res) => {
+app.put("/updateMarkets", async (req, res) => {
     const { id, name, date, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
-        $set: {
+    try {
+        await MODEL_MARKET.findByIdAndUpdate(id, {
             name: name,
             date: date,
             products: products
-        }
-    }).then(result => {
-        console.log(result);
-        res.send("Market updated");
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error updating market.");
-    });
+        });
+        res.send(`Updated product "${name}"`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Error deleting market: ${err}`);
+    }
 });
-app.put("/updateMarketProducts", (req, res) => {
-    const { id, products } = req.body;
-    MODEL_PRODUCT.collection.updateOne({ _id: mongoose.Types.ObjectId(id) }, {
-        $set: { products: products }
-    }).then(result => {
-        console.log(result);
-        res.send("Market updated");
-    }).catch(err => {
-        console.log(err);
-        res.status(500).send("Error updating market.");
-    });
-});
-
 
 
 app.listen(PORT, () => {
-    console.log("Server is running on Port " + PORT)
+    console.log("Server is running on Port " + PORT);
 });
