@@ -20,7 +20,7 @@ const SCHEMA_PRODUCT = mongoose.Schema({
     category: String,
     isTaxable: Boolean,
     count: Number,
-    deleted: Boolean
+    deleted: {type: Boolean, default: false}
 });
 const SCHEMA_MARKET = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
@@ -32,13 +32,13 @@ const SCHEMA_MARKET = mongoose.Schema({
         countAllocated: Number,
         countRemaining: Number
     }],
-    deleted: Boolean
+    deleted: {type: Boolean, default: false}
 });
 
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
 const MODEL_MARKET = mongoose.model("markets", SCHEMA_MARKET);
 
-// Getter functions
+// Getter Endpoints
 app.get("/getProducts", (req, res) => {
     MODEL_PRODUCT.find({ deleted: false }).then(products => {
         res.json(products);
@@ -56,11 +56,11 @@ app.get("/getMarkets", (req, res) => {
     });
 });
 
-// Adding functions
+// Adding Endpoints
 app.post("/addProducts", async (req, res) => {
-    const { name, category, isTaxable, count, deleted } = req.body;
+    const { name, category, isTaxable, count } = req.body;
     try {
-        const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count, deleted });
+        const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count });
         await PRODUCT.save();
         res.send(`Product "${name}" inserted successfully.`);
     } catch (err) {
@@ -70,9 +70,9 @@ app.post("/addProducts", async (req, res) => {
 });
 
 app.post("/addMarkets", async (req, res) => {
-    const { name, date, products, deleted } = req.body;
+    const { name, date, products } = req.body;
     try {
-        const MARKET = new MODEL_MARKET({ name, date, products, deleted });
+        const MARKET = new MODEL_MARKET({ name, date, products });
         await MARKET.save();
         res.send(`Market "${name}" inserted successfully.`);
     } catch (err) {
@@ -81,7 +81,7 @@ app.post("/addMarkets", async (req, res) => {
     }
 });
 
-// Removing functions
+// Soft Deletion Endpoints
 app.put("/deleteProduct", async (req, res) => {
     const { _id } = req.body;
     try {
@@ -104,7 +104,7 @@ app.put("/deleteMarket", async (req, res) => {
     }
 });
 
-// Editing functions
+// Editing Endpoints
 app.put("/updateProducts", async (req, res) => {
     const { _id, name, category, isTaxable, count } = req.body;
     try {
@@ -112,12 +112,13 @@ app.put("/updateProducts", async (req, res) => {
             name: name,
             category: category,
             isTaxable: isTaxable,
-            count: count
+            count: count,
+            deleted: false
         });
         res.send(`Updated product "${name}"`);
     } catch (err) {
         console.error(err);
-        res.status(500).send(`Error deleting market: ${err}`);
+        res.status(500).send(`Error updating product: ${err}`);
     }
 });
 app.put("/updateMarkets", async (req, res) => {
@@ -126,12 +127,13 @@ app.put("/updateMarkets", async (req, res) => {
         await MODEL_MARKET.findByIdAndUpdate(_id, {
             name: name,
             date: date,
-            products: products
+            products: products,
+            deleted: false
         });
-        res.send(`Updated product "${name}"`);
+        res.send(`Updated market "${name}"`);
     } catch (err) {
         console.error(err);
-        res.status(500).send(`Error deleting market: ${err}`);
+        res.status(500).send(`Error updating market: ${err}`);
     }
 });
 
