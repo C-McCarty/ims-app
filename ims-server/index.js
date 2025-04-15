@@ -58,7 +58,6 @@ app.get("/getMarkets", (req, res) => {
 
 // Adding functions
 app.post("/addProducts", async (req, res) => {
-    console.log(req.body);
     const { name, category, isTaxable, count, deleted } = req.body;
     try {
         const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count, deleted });
@@ -71,7 +70,6 @@ app.post("/addProducts", async (req, res) => {
 });
 
 app.post("/addMarkets", async (req, res) => {
-    console.log(req.body);
     const { name, date, products, deleted } = req.body;
     try {
         const MARKET = new MODEL_MARKET({ name, date, products, deleted });
@@ -85,10 +83,9 @@ app.post("/addMarkets", async (req, res) => {
 
 // Removing functions
 app.put("/deleteProduct", async (req, res) => {
-    console.log(req.body);
-    const { id } = req.body;
+    const { _id } = req.body;
     try {
-        await MODEL_PRODUCT.findByIdAndUpdate(id, { deleted: true });
+        await MODEL_PRODUCT.findByIdAndUpdate(_id, { deleted: true });
         res.send(`Deleted product.`);
     } catch (err) {
         console.error(err);
@@ -97,10 +94,9 @@ app.put("/deleteProduct", async (req, res) => {
 });
 
 app.put("/deleteMarket", async (req, res) => {
-    console.log(req.body);
-    const { id } = req.body;
+    const { _id } = req.body;
     try {
-        await MODEL_MARKET.findByIdAndUpdate(id, { deleted: true });
+        await MODEL_MARKET.findByIdAndUpdate(_id, { deleted: true });
         res.send(`Deleted market.`);
     } catch (err) {
         console.error(err);
@@ -110,10 +106,9 @@ app.put("/deleteMarket", async (req, res) => {
 
 // Editing functions
 app.put("/updateProducts", async (req, res) => {
-    console.log(req.body);
-    const { id, name, category, isTaxable, count } = req.body;
+    const { _id, name, category, isTaxable, count } = req.body;
     try {
-        await MODEL_PRODUCT.findByIdAndUpdate(id, {
+        await MODEL_PRODUCT.findByIdAndUpdate(_id, {
             name: name,
             category: category,
             isTaxable: isTaxable,
@@ -126,10 +121,9 @@ app.put("/updateProducts", async (req, res) => {
     }
 });
 app.put("/updateMarkets", async (req, res) => {
-    console.log(req.body);
-    const { id, name, date, products } = req.body;
+    const { _id, name, date, products } = req.body;
     try {
-        await MODEL_MARKET.findByIdAndUpdate(id, {
+        await MODEL_MARKET.findByIdAndUpdate(_id, {
             name: name,
             date: date,
             products: products
