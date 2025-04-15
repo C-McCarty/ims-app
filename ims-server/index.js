@@ -15,7 +15,7 @@ mongoose.connect(URL).then(() => {
 });
 
 const SCHEMA_PRODUCT = mongoose.Schema({
-    _id: mongoose.Types.ObjectId,
+    id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     name: String,
     category: String,
     isTaxable: Boolean,
@@ -23,7 +23,7 @@ const SCHEMA_PRODUCT = mongoose.Schema({
     deleted: Boolean
 });
 const SCHEMA_MARKET = mongoose.Schema({
-    _id: mongoose.Types.ObjectId,
+    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     name: String,
     date: Date,
     products: [{
@@ -57,11 +57,11 @@ app.get("/getMarkets", (req, res) => {
 });
 
 // Adding functions
-const notDeleted = false;
 app.post("/addProducts", async (req, res) => {
-    const { name, category, isTaxable, count } = req.body;
+    console.log(req.body);
+    const { name, category, isTaxable, count, deleted } = req.body;
     try {
-        const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count, notDeleted });
+        const PRODUCT = new MODEL_PRODUCT({ name, category, isTaxable, count, deleted });
         await PRODUCT.save();
         res.send(`Product "${name}" inserted successfully.`);
     } catch (err) {
@@ -71,9 +71,10 @@ app.post("/addProducts", async (req, res) => {
 });
 
 app.post("/addMarkets", async (req, res) => {
-    const { name, date, products } = req.body;
+    console.log(req.body);
+    const { name, date, products, deleted } = req.body;
     try {
-        const MARKET = new MODEL_MARKET({ name, date, products, notDeleted });
+        const MARKET = new MODEL_MARKET({ name, date, products, deleted });
         await MARKET.save();
         res.send(`Market "${name}" inserted successfully.`);
     } catch (err) {
@@ -84,6 +85,7 @@ app.post("/addMarkets", async (req, res) => {
 
 // Removing functions
 app.put("/deleteProduct", async (req, res) => {
+    console.log(req.body);
     const { id } = req.body;
     try {
         await MODEL_PRODUCT.findByIdAndUpdate(id, { deleted: true });
@@ -95,6 +97,7 @@ app.put("/deleteProduct", async (req, res) => {
 });
 
 app.put("/deleteMarket", async (req, res) => {
+    console.log(req.body);
     const { id } = req.body;
     try {
         await MODEL_MARKET.findByIdAndUpdate(id, { deleted: true });
@@ -107,6 +110,7 @@ app.put("/deleteMarket", async (req, res) => {
 
 // Editing functions
 app.put("/updateProducts", async (req, res) => {
+    console.log(req.body);
     const { id, name, category, isTaxable, count } = req.body;
     try {
         await MODEL_PRODUCT.findByIdAndUpdate(id, {
@@ -122,6 +126,7 @@ app.put("/updateProducts", async (req, res) => {
     }
 });
 app.put("/updateMarkets", async (req, res) => {
+    console.log(req.body);
     const { id, name, date, products } = req.body;
     try {
         await MODEL_MARKET.findByIdAndUpdate(id, {
