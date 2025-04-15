@@ -1,140 +1,153 @@
 import { useEffect, useState } from "react";
-import '../styles/editFormStyles.css';
 import axios from "axios";
 import Loading from "./Loading";
+import ConfirmationModal from "./ConfirmationModal";
 
-export default function EditForm({collection, type, DB_URL}) {
-    const [loading, setLoading] = useState(false);
-    // TYPE 0 = Add, 1 = Remove, 2 = Edit
-    const [prodIDs, setProdIDs] = useState([]);
-    const [options, setOptions] = useState([]);
+export default function EditForm({collection, DB_URL, name=null, category=null, taxable=null, count=null, date=null, products=null, editForm, toggleEditForm, _id, setRefresh}) {
+    const [loading, setLoading] = useState(true);
+    
+    // Control input data for Products
+    const [prodName, setProdName] = useState((collection == "Products" ? name : ""));
+    const handleProdNameChange = e => setProdName(e.target.value);
+    const [prodCategoryOption, setProdCategoryOption] = useState((collection == "Products" ? category : ""));
+    const handleProdCategoryChange = e => setProdCategoryOption(e.target.value);
+    const [prodNewCategory, setProdNewCategory] = useState("");
+    const handleProdNewCategoryChange = e => setProdNewCategory(e.target.value);
+    const [prodIsTaxable, setProdIsTaxable] = useState((collection == "Products" ? ((taxable) ? 1 : 0) : 1));
+    const handleProdIsTaxableChange = e => setProdIsTaxable(e.target.value);
+    const [prodCount, setProdCount] = useState((collection == "Products" ? count : 0));
+    const handleProdCountChange = e => setProdCount(e.target.value);
+    const [prodOptionData, setProdOptionData] = useState([]);
+    const [prodOptions, setProdOptions] = useState([]);
 
-    const [txtName, setTxtName] = useState("");
-    const handleTxtName = e => setTxtName(e.target.value);
-    const [txtProdCategory, setTxtProdCategory] = useState("");
-    const handleTxtProdCategory = e => setTxtProdCategory(e.target.value);
-    const [slxProdCategory, setSlxProdCategory] = useState("");
-    const handleSlxProdCategory = e => setSlxProdCategory(e.target.value);
-    const [tofProdTaxable, setTofProdTaxable] = useState("");
-    const handleTofProdTaxable = e => setTofProdTaxable(e.target.value);
-    const [dteMarkDate, setDteMarkDate] = useState("");
-    const handleDteMarkDate = e => setDteMarkDate(e.target.value);
+    // Control input data for Markets
+    const [markName, setMarkName] = useState((collection == "Markets" ? name : ""));
+    const handleMarkNameChange = e => setMarkName(e.target.value);
+    const [markDate, setMarkDate] = useState((collection == "Markets" ? date : ""));
+    const handleMarkDateChange = e => setMarkDate(e.target.value);
+    const [markProds, setMarkProds] = useState((collection == "Markets" ? products : []));
+    const handleMarkProdsChange = e => setMarkProds(e.target.value);
+    const [prodDeleted, setProdDeleted] = useState(false);
+    const [confirmModal, toggleConfirmModal] = useState(false);
 
-    const [delName, setDelName] = useState("");
-    const handleDelName = e => setDelName(e.target.value);
-
-    const handleSubmit = e => {
-        e.preventDefault();
-        console.log(delName)
-        axios.delete(`${DB_URL}/delete${collection}`, {data: {id: delName}});
-        setLoading(true);
-        axios.get(`${DB_URL}/get${collection}s`).then(response => {
-            const names = response.data.map(item => ({_id: item._id, name: item.name}));
-            setProdIDs(names);
-        }).catch(err => {
-            console.error(err);
-            setLoading(false);
-        });
-    }
-
-    // Populates dropdown menus
+    // Get Product categories to populate category dropdown
     useEffect(() => {
-        if (type == 1) {
-            setLoading(true);
-            axios.get(`${DB_URL}/get${collection}s`).then(response => {
-                const names = response.data.map(item => ({_id: item._id, name: item.name}))
-                setProdIDs(names);
+        setLoading(true);
+        if (collection == "Products") {
+            axios.get(`${DB_URL}/getProducts`).then(res => {
+                console.log(res.data);
+                let list = res.data.map(item => {return item.category});
+                list = new Set(list);
+                list = [...list];
+                setProdOptionData([...list]);
             }).catch(err => {
                 console.error(err);
                 setLoading(false);
             });
         }
-    }, [collection, type]);
-
+    }, [editForm]);
+    
+    // Generate <option> elements for category dropdown
     useEffect(() => {
-        if (prodIDs.length > 0) {
-            const list = prodIDs.map((opt, i) => {
-                return <option value={opt._id} key={i}>{opt.name}</option>
+        const list = prodOptionData.map((opt, i) => {
+            return <option value={opt} key={i}>{opt}</option>
+        });
+        setProdOptions(list);
+        setLoading(false);
+    }, [prodOptionData]);
+
+    const handleSubmit = e => {
+        e.preventDefault();
+        if (collection == "Products") {
+            axios.put(`${DB_URL}/updateProducts`, {
+                _id: _id,
+                name: prodName,
+                category: (prodCategoryOption == 0 ? prodNewCategory : prodCategoryOption),
+                isTaxable: (prodIsTaxable == 1 ? true : false),
+                count: prodCount
+            }).then(()=> {
+                window.alert("Product updated successfully");
+                toggleEditForm(false);
+                setRefresh(true);
             });
-            setOptions(list);
-            setLoading(false);
+        } else {
+
         }
-    }, [prodIDs]);
+    }
+    const handleClose = () => {
+        toggleEditForm(false);
+    }
+    // Confirmation to delete Product/Market
+    const confirmDelete = () => {
+        toggleConfirmModal(true);
+    }
+    // Soft Delete from database
+    const handleDelete = () => {
+        if (collection == "Products") {
+            axios.put(`${DB_URL}/deleteProduct`, { _id }).then(() => {
+                window.alert(`Product "${name}" was successfully deleted.`);
+                toggleEditForm(false);
+                toggleConfirmModal(false);
+                setRefresh(true);
+            }).catch(err => {
+                console.error(err);
+                window.alert("An error occurred while trying to delete your product. Please try again later.");
+            });
+        }
+    }
 
-
-    if (loading) {
-        return <Loading />
-    } else {
-        if (type == 0) {
+    if (editForm) {
+        if (collection == "Products") {
             return (
-                <form className="editorForm" id="addForm">
-                    <div>
-                        <label htmlFor="name">{collection} Name:</label>
-                        <input type="text" name="name" id="name" value={txtName} onChange={handleTxtName} />
+                <div id="editFormWrap" className="modalWrap">
+                    <div id="editModal" className="modal">
+                        <h2>Edit {name}</h2>
+                        <div className="closeBtn" onClick={handleClose}>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        {collection == "Products" ?
+                            <form id="EditForm" className="popupForm" onSubmit={handleSubmit}>
+                                
+                                <div>
+                                    <label htmlFor="prodName">Product Name:</label>
+                                    <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
+                                </div>
+                                <div>
+                                    <label htmlFor="prodCategory">Product Category:</label>
+                                    {loading ? <Loading /> : 
+                                    <select name="prodCategory" id="prodCategory" value={prodCategoryOption} onChange={handleProdCategoryChange} required >
+                                        {prodOptions}
+                                        <option value={0}>-- New Category --</option>
+                                    </select>}
+                                </div>
+                                {prodCategoryOption == 0 ?
+                                    <div>
+                                        <label htmlFor="prodNewCategory">New Category:</label>
+                                        <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
+                                    </div>
+                                : null}
+                                <div>
+                                    <label htmlFor="prodTaxable">Taxable?</label>
+                                    <select name="prodTaxable" id="prodTaxable" value={prodIsTaxable} onChange={handleProdIsTaxableChange} required >
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="prodCount">Product Count:</label>
+                                    <input type="number" id="prodCount" min={0} value={prodCount} onChange={handleProdCountChange} required />
+                                </div>
+                                <div className="half">
+                                    <button type="submit">Save</button>
+                                    <button type="button" className="deleteBtn" onClick={confirmDelete}>Delete Product</button>
+                                </div>
+                            </form>
+                            : null
+                        }
+                        <ConfirmationModal name={name} confirmModal={confirmModal} toggleConfirmModal={toggleConfirmModal} handleDelete={handleDelete} />
                     </div>
-                    {(collection == "Product") ?
-                    <>
-                        <div>
-                            <label htmlFor="category">{collection} Category:</label>
-                            <select name="category" id="category" value={slxProdCategory} onChange={handleSlxProdCategory}></select>
-                        </div>
-                        {slxProdCategory == "" ?
-                        <div>
-                            <label htmlFor="custCategory">Custom Category:</label>
-                            <input type="text" name="custCategory" id="custCategory" value={txtProdCategory} onChange={handleTxtProdCategory} />
-                        </div>
-                        : null}
-                        <div>
-                            <label htmlFor="isTaxable">Taxable?</label>
-                            <input type="checkbox" name="isTaxable" id="isTaxable" value={tofProdTaxable} onChange={handleTofProdTaxable} />
-                        </div>
-                    </>:
-                    <div>
-                        <label htmlFor="marketDate">{collection} Date:</label>
-                        <input type="date" name="marketDate" id="marketDate" value={dteMarkDate} onChange={handleDteMarkDate} />
-                    </div>}
-
-                    <button>Submit</button>
-                </form>
-            );
-        } else if (type == 1) {
-            return (
-                <form className="editorForm" id="remForm" onSubmit={handleSubmit}>
-                    <div>
-                        <label htmlFor="delName">{collection} Name:</label>
-                        <select name="delName" id="delName" value={delName} onChange={handleDelName}>{options}</select>
-                    </div>
-                    
-                    <button className="delBtn">Delete {collection}</button>
-                    <h4>Warning! This action cannot be undone!</h4>
-                </form>
-            );
-        } else if (type == 2) {
-            return (
-                <form className="editorForm" id="edtForm">
-                    <h2>Edit {collection}</h2>
-                    <div>
-                        <label htmlFor="name">Rename:</label>
-                        <input type="text" name="name" id="name" value={collection} />
-                    </div>
-                    {(collection == "Product") ?
-                    <>
-                        <div>
-                            <label htmlFor="category">Change Category:</label>
-                            <input type="text" name="category" id="category" />
-                        </div>
-                        <div>
-                            <label htmlFor="isTaxable">Change Taxable:</label>
-                            <input type="checkbox" name="isTaxable" id="isTaxable" />
-                        </div>
-                    </> :
-                    <div>
-                        <label htmlFor="marketDate">Change Date:</label>
-                        <input type="date" name="marketDate" id="marketDate" />
-                    </div>}
-
-                    <button>Save Changes</button>
-                </form>
+                </div>
             );
         }
     }

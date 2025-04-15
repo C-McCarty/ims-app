@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './styles/App.css';
 import SignInForm from './comp/SignInForm';
@@ -9,34 +9,36 @@ import Loading from './comp/Loading';
 import ListItem from './comp/ListItem';
 import AddModal from './comp/AddModal';
 
-function App() {
+export default function App() {
     // const DB_URL = process.env.DB_URL;
     const DB_URL = "https://tmcf-ims-app.onrender.com";
 
+    // Controls user authentication
     const [signedIn, toggleSignedIn] = useState(false);
+
+    // Stores Product data from the database
     const [viewData, setViewData] = useState([]);
+    // Stores Product ListItem elements
     const [viewItems, setViewItems] = useState([]);
-    const [loading, setLoading] = useState(false);
+    
+    // Controls whether Products or Markets are displayed
     const [collection, setCollection] = useState("");
+    // Controls whether the settings modal is open or closed
     const [modalOpen, toggleModalOpen] = useState(false);
+    // Controls whether the AddModal is open or closed
     const [addModal, toggleAddModal] = useState(false);
 
-    const handleSignIn = (DB, PWD) => {
-        toggleSignedIn(true);
-        setPage(0);
-        setCollection("Dashboard");
-    }
+    // Controls loading screen
+    const [loading, setLoading] = useState(false);
+
+    const [refresh, setRefresh] = useState(0);
+    
+    // Controls the active page
     // 0 = Dashboard
+    // 2 = List
+    // 3 = Reports
     const [page, setPage] = useState(0);
 
-    const [manageFormSelect, setManageFormSelect] = useState(0);
-    const handleManageFormSelect = (e) => {
-        setManageFormSelect(e.target.value);
-    }
-
-    useEffect(() => {
-        setManageFormSelect(0);
-    }, [page]);
     
     useEffect(() => {
         if (page == 2) {
@@ -49,45 +51,35 @@ function App() {
     }, [page, collection]);
 
     useEffect(() => {
+        if (refresh) {
+            if (page == 2) {
+                setLoading(true);
+                // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
+                axios.get(`${DB_URL}/get${collection}`).then(response => {
+                    setViewData(response.data);
+                });
+                setRefresh(false);
+            }
+        }
+    }, [refresh]);
+
+    // Generate List Items for Products and Markets
+    useEffect(() => {
         if (viewData.length > 0) {
+            // Product list
             if (collection === "Products") {
                 const list = viewData.map((item, i) => {
                     return (
-                        <ListItem collection={collection} name={item.name} category={item.category} taxable={(item.isTaxable) ? "Yes" : "No"} count={item.count} />
+                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} category={item.category} taxable={(item.isTaxable) ? "Yes" : "No"} count={item.count} key={item._id} _id={item._id} setRefresh={setRefresh} />
                     );
                 });
                 setViewItems(list);
-            } else if (collection === "Markets") {
+            }
+            // Market List
+            else if (collection === "Markets") {
                 const list = viewData.map((item, i) => {
                     return (
-                        <tr>
-                            <td>{item.name}</td>
-                            <td>{new Date(item.date).toDateString()}</td>
-                            <td>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Allocated</th>
-                                            <th>Remaining</th>
-                                            <th>Sold</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {item.products.map((prod, i) => {
-                                        return (
-                                            <tr>
-                                                <td>{prod.name}</td>
-                                                <td className='count'>{prod.countAllocated}</td>
-                                                <td className='count'>{prod.countRemaining}</td>
-                                                <td className='count'>{prod.countAllocated - prod.countRemaining}</td>
-                                            </tr>
-                                        )})}
-                                    </tbody>
-                                </table>
-                            </td>
-                            <td className="edit">Edit</td>
-                        </tr>
+                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} date={item.date} products={item.products} key={i} />
                     );
                 });
                 setViewItems(list);
@@ -96,23 +88,35 @@ function App() {
         }
     }, [viewData, page]);
 
+    // Turn off the loading screen once the viewItems list has propagated
     useEffect(() => {
         if (viewItems.length > 0 && viewItems.length == viewData.length) {
             setLoading(false);
         }
     }, [viewItems]);
 
-    const appRef = useRef(null);
-    const handleFullScreen = e => {
-        console.log("fired")
-        appRef.current.requestFullscreen().catch(err => {
-            console.warn(err);
-        });
+
+    // Deprecated functions
+    const [manageFormSelect, setManageFormSelect] = useState(0);
+    const handleManageFormSelect = (e) => {
+        setManageFormSelect(e.target.value);
+    }
+    useEffect(() => {
+        setManageFormSelect(0);
+    }, [page]);
+
+
+    // Handle user authentication
+    const handleSignIn = (DB, PWD) => {
+        // Change to actually handle authentication before deployment
+        toggleSignedIn(true);
+        setPage(0);
+        setCollection("Dashboard");
     }
 
-
+    // User has signed in
     if (signedIn) {
-        // Dashboard
+        // 0 | Dashboard
         if (page == 0) {
             return (
                 <div className="App">
@@ -150,7 +154,9 @@ function App() {
                     : null}
                 </div>
             );
-        } else if (page == 1) {
+        }
+        // 1 | Deprecated 
+        else if (page == 1) {
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
@@ -160,9 +166,11 @@ function App() {
                     </main>
                 </div>
             );
-        } else if (page == 2) {
+        }
+        // 2 | List
+        else if (page == 2) {
             return (
-                <div className="App" onClick={handleFullScreen} ref={appRef}>
+                <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
                         <h1>View {collection}</h1>
@@ -176,10 +184,12 @@ function App() {
                         </div>
                         }
                     </main>
-                    <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} />
+                    <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} setRefresh={setRefresh} />
                 </div>
             );
-        } else if (page == 3) {
+        }
+        // 3 | Reports
+        else if (page == 3) {
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
@@ -194,19 +204,21 @@ function App() {
                     </main>
                 </div>
             );
-        } else {
+        }
+        // 404 Page
+        else {
             return (
                 <Error404 />
             );
         }
-    } else {
+    }
+    // Login page
+    else {
         return (
-            <>
+            <div className='App'>
                 <Header />
                 <SignInForm signedIn={signedIn} handleSignIn={handleSignIn} />
-            </>
+            </div>
         );
     }
 }
-
-export default App;
