@@ -8,10 +8,15 @@ import Error404 from './comp/Error404';
 import Loading from './comp/Loading';
 import ListItem from './comp/ListItem';
 import AddModal from './comp/AddModal';
+import Banner from './comp/Banner';
 
 export default function App() {
+    /* ---- Constants ---- */
+    // ---------------------------------- Change to environment variable for deployment
     // const DB_URL = process.env.DB_URL;
     const DB_URL = "https://tmcf-ims-app.onrender.com";
+
+    /* ---- useState variables ---- */
 
     // Controls user authentication
     const [signedIn, toggleSignedIn] = useState(false);
@@ -27,19 +32,24 @@ export default function App() {
     const [modalOpen, toggleModalOpen] = useState(false);
     // Controls whether the AddModal is open or closed
     const [addModal, toggleAddModal] = useState(false);
+    // Control Banner display, type, and message
+    const [banner, setBanner] = useState([false, -1, ""]);
 
-    // Controls loading screen
+    // Control loading screen
     const [loading, setLoading] = useState(false);
-
+    // Control list refresh
     const [refresh, setRefresh] = useState(0);
     
-    // Controls the active page
-    // 0 = Dashboard
-    // 2 = List
-    // 3 = Reports
+    /* Controls the active page
+    /* 0 = Dashboard
+    /* 1 = Unused
+    /* 2 = List
+    /* 3 = Reports */
     const [page, setPage] = useState(0);
 
-    
+    /* ---- useEffect functions ---- */
+
+    // Get Products or Markets that have not been soft deleted
     useEffect(() => {
         if (page == 2) {
             setLoading(true);
@@ -49,12 +59,11 @@ export default function App() {
             });
         }
     }, [page, collection]);
-
+    // Same as above except it only fires when the page has been refreshed
     useEffect(() => {
         if (refresh) {
             if (page == 2) {
                 setLoading(true);
-                // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
                 axios.get(`${DB_URL}/get${collection}`).then(response => {
                     setViewData(response.data);
                 });
@@ -62,15 +71,14 @@ export default function App() {
             }
         }
     }, [refresh]);
-
-    // Generate List Items for Products and Markets
+    // Generate ListItems for Products and Markets
     useEffect(() => {
         if (viewData.length > 0) {
             // Product list
             if (collection === "Products") {
                 const list = viewData.map((item, i) => {
                     return (
-                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} category={item.category} taxable={(item.isTaxable) ? "Yes" : "No"} count={item.count} key={item._id} _id={item._id} setRefresh={setRefresh} />
+                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} category={item.category} taxable={(item.isTaxable) ? "Yes" : "No"} count={item.count} key={item._id} _id={item._id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
                     );
                 });
                 setViewItems(list);
@@ -79,7 +87,7 @@ export default function App() {
             else if (collection === "Markets") {
                 const list = viewData.map((item, i) => {
                     return (
-                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} date={item.date} products={item.products} key={i} />
+                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} date={item.date} products={item.products} key={i} banner={banner} setBanner={setBanner} />
                     );
                 });
                 setViewItems(list);
@@ -87,28 +95,26 @@ export default function App() {
             setLoading(false);
         }
     }, [viewData, page]);
-
     // Turn off the loading screen once the viewItems list has propagated
     useEffect(() => {
         if (viewItems.length > 0 && viewItems.length == viewData.length) {
             setLoading(false);
         }
     }, [viewItems]);
-
-
-    // Deprecated functions
-    const [manageFormSelect, setManageFormSelect] = useState(0);
-    const handleManageFormSelect = (e) => {
-        setManageFormSelect(e.target.value);
-    }
+    // Set Banner timeout once it loads
     useEffect(() => {
-        setManageFormSelect(0);
-    }, [page]);
+        if (banner[0]) {
+            setTimeout(() => {
+                setBanner(false, -1, "");
+            }, 3500);
+        }
+    }, [banner]);
 
+    /* ---- Handler functions ---- */
 
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
-        // Change to actually handle authentication before deployment
+        // ------------------------- Change to actually handle authentication before deployment
         toggleSignedIn(true);
         setPage(0);
         setCollection("Dashboard");
@@ -155,18 +161,6 @@ export default function App() {
                 </div>
             );
         }
-        // 1 | Deprecated 
-        else if (page == 1) {
-            return (
-                <div className="App">
-                    <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
-                    <main>
-                        <h1>I Want to... <select className="manageFormSelect" value={manageFormSelect} onChange={handleManageFormSelect}><option value="0">Add</option><option value="1">Remove</option></select> a {collection}</h1>
-                        <EditForm collection={collection} type={manageFormSelect} DB_URL={DB_URL} />
-                    </main>
-                </div>
-            );
-        }
         // 2 | List
         else if (page == 2) {
             return (
@@ -184,7 +178,8 @@ export default function App() {
                         </div>
                         }
                     </main>
-                    <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} setRefresh={setRefresh} />
+                    <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
+                    <Banner active={banner[0]} type={banner[1]} msg={banner[2]} />
                 </div>
             );
         }

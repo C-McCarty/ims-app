@@ -2,11 +2,11 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
 
-export default function AddModal({toggleAddModal, addModal, collection, DB_URL, setRefresh}) {
+export default function AddModal({toggleAddModal, addModal, collection, DB_URL, setRefresh, banner, setBanner}) {
     // Control input data for Products
     const [prodName, setProdName] = useState("");
     const handleProdNameChange = e => setProdName(e.target.value);
-    const [prodCategoryOption, setProdCategoryOption] = useState(-1);
+    const [prodCategoryOption, setProdCategoryOption] = useState("");
     const handleSelCategoryChange = e => setProdCategoryOption(e.target.value);
     const [prodNewCategory, setProdNewCategory] = useState("");
     const handleProdNewCategoryChange = e => setProdNewCategory(e.target.value);
@@ -35,13 +35,13 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
         if (collection == "Products") {
             axios.post(`${DB_URL}/addProducts`, {
                 name: prodName,
-                category: (prodCategoryOption == 0 ? prodNewCategory : prodCategoryOption),
+                category: (prodCategoryOption == -1 ? prodNewCategory : prodCategoryOption),
                 isTaxable: (prodIsTaxable == 1 ? true : false),
                 count: prodCount
             }).then(()=> {
-                window.alert(`Product "${prodName}" added successfully!`);
+                setBanner([true, 0, `Product "${prodName}" added successfully!`]);
                 setProdName("");
-                setProdCategoryOption(null);
+                setProdCategoryOption("");
                 setProdNewCategory("");
                 setProdIsTaxable(1);
                 setProdCount(0);
@@ -49,7 +49,7 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
                 setRefresh(true);
             }).catch(err => {
                 console.error(err);
-                window.alert("An error occurred while trying to add your product. Please try again later.");
+                setBanner([true, 2, "An error occurred while trying to add your product. Please try again later."]);
             });
         }
         // Adding a Market
@@ -95,10 +95,10 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
         setProdOptions(list);
         setLoading(false);
     }, [prodOptionData]);
-    
+
     const handleClose = () => {
         setProdName("");
-        setProdCategoryOption(-1);
+        setProdCategoryOption("");
         setProdNewCategory("");
         setProdIsTaxable(1);
         setProdCount(0);
@@ -127,12 +127,12 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
                             <div>
                                 <label htmlFor="prodCategory">Product Category:</label>
                                 <select name="prodCategory" id="prodCategory" value={prodCategoryOption} onChange={handleSelCategoryChange} required >
-                                    <option value="-1" disabled hidden></option>
+                                    <option value="" disabled hidden></option>
                                     {prodOptions}
-                                    <option value={0}>-- New Category --</option>
+                                    <option value={-1}>-- New Category --</option>
                                 </select>
                             </div>
-                            {prodCategoryOption == 0 ?
+                            {prodCategoryOption == -1 ?
                                 <div>
                                     <label htmlFor="prodNewCategory">New Category:</label>
                                     <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
