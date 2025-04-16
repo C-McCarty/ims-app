@@ -15,7 +15,7 @@ mongoose.connect(URL).then(() => {
 });
 
 const SCHEMA_PRODUCT = mongoose.Schema({
-    id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     name: String,
     category: String,
     isTaxable: Boolean,
