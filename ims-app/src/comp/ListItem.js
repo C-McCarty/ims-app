@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import EditForm from "./EditForm";
 
-export default function ListItem({collection, DB_URL, name, category=null, taxable=null, count=null, date=null, products=null, _id, setRefresh}) {
+export default function ListItem({collection, DB_URL, name, category=null, taxable=null, count=null, date=null, products=null, _id, setRefresh, banner, setBanner}) {
     // Control display of ListItem details
     const [details, toggleDetails] = useState(false);
     // Control display of editor modal
@@ -30,7 +30,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                         <p>{count}</p>
                     </div>
                 </div>
-                <EditForm collection={collection} DB_URL={DB_URL} name={name} category={category} taxable={taxable} count={count} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id}  setRefresh={setRefresh}/>
+                <EditForm collection={collection} DB_URL={DB_URL} name={name} category={category} taxable={taxable} count={count} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
             </div>
         );
     }
@@ -61,21 +61,23 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                                 <div className="th">Left</div>
                                 <div className="th">Sold</div>
                             </div>
-                            {products.map((p, i) => {
-                                // Generate Product rows
-                                return (
-                                    <div className="tr" key={p._id}>
-                                        <div className="td">{p.name}</div>
-                                        <div className="td">{p.countAllocated}</div>
-                                        <div className="td">{p.countRemaining}</div>
-                                        <div className="td">{p.countAllocated - p.countRemaining}</div>
-                                    </div>
-                                );
-                            })}
+                            <div className="tbody">
+                                {products.map((p, i) => {
+                                    // Generate Product rows
+                                    return (
+                                        <div className="tr" key={p._id}>
+                                            <div className="td">{p.name}</div>
+                                            <div className="td">{p.countAllocated}</div>
+                                            <div className="td">{p.countRemaining}</div>
+                                            <div className="td">{p.countAllocated - p.countRemaining}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={date} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} />
+                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={date} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
             </div>
         );
     }
