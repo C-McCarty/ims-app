@@ -147,7 +147,7 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
                             </div>
                             <div>
                                 <label htmlFor="prodCount">Product Count:</label>
-                                <input type="number" id="prodCount" min={0} value={prodCount} onChange={handleProdCountChange} required />
+                                <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
                             </div>
                             <div>
                                 <button type="submit">Submit</button>

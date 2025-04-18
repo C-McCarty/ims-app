@@ -55,6 +55,7 @@ export default function App() {
             setLoading(true);
             // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
             axios.get(`${DB_URL}/get${collection}`).then(response => {
+                response.data.sort((a, b) => a.name.localeCompare(b.name));
                 setViewData(response.data);
             });
         }
@@ -65,6 +66,7 @@ export default function App() {
             if (page == 2) {
                 setLoading(true);
                 axios.get(`${DB_URL}/get${collection}`).then(response => {
+                    response.data.sort((a, b) => a.name.localeCompare(b.name));
                     setViewData(response.data);
                 });
                 setRefresh(false);

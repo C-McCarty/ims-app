@@ -184,7 +184,7 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                             </div>
                             <div>
                                 <label htmlFor="prodCount">Product Count:</label>
-                                <input type="number" id="prodCount" min={0} value={prodCount} onChange={handleProdCountChange} required />
+                                <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
                             </div>
                             <div className="half">
                                 <button type="submit">Save</button>
@@ -236,8 +236,8 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                                         return (
                                             <div className="tr">
                                                 <div className="td">{p.name}</div>
-                                                <div className="td"><input type="number" name={`prodAllocated${i}`} id={`prodAllocated${i}`} value={productCountAllocated[i]} onChange={e => {handleProductCountAllocatedChange(e, i)}} min={0} max={100} /></div>
-                                                <div className="td"><input type="number" name={`prodRemaining${i}`} id={`prodRemaining${i}`} value={productCountRemaining[i]} onChange={e => {handleProductCountRemainingChange(e, i)}} min={0} max={100} /></div>
+                                                <div className="td"><input type="number" min={0} max={100} step={1} name={`prodAllocated${i}`} id={`prodAllocated${i}`} value={productCountAllocated[i]} onChange={e => {handleProductCountAllocatedChange(e, i)}} /></div>
+                                                <div className="td"><input type="number" min={0} max={100} step={1} name={`prodRemaining${i}`} id={`prodRemaining${i}`} value={productCountRemaining[i]} onChange={e => {handleProductCountRemainingChange(e, i)}} /></div>
                                                 <div className="td"><div className="remove" onClick={()=>{}}></div></div>
                                             </div>
                                         );
