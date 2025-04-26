@@ -1,44 +1,59 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
+import Select from "react-select";
+import TR from "./TR";
 
-export default function AddModal({toggleAddModal, addModal, collection, DB_URL, setRefresh, banner, setBanner}) {
-    // Control input data for Products
+export default function AddModal({ toggleAddModal, addModal, collection, DB_URL, setRefresh, banner, setBanner }) {
+    // Product state
     const [prodName, setProdName] = useState("");
     const handleProdNameChange = e => setProdName(e.target.value);
     const [prodCategoryOption, setProdCategoryOption] = useState("");
-    const handleSelCategoryChange = e => setProdCategoryOption(e.target.value);
+    const handleCategoryChange = option => setProdCategoryOption(option.value);
     const [prodNewCategory, setProdNewCategory] = useState("");
     const handleProdNewCategoryChange = e => setProdNewCategory(e.target.value);
     const [prodIsTaxable, setProdIsTaxable] = useState(1);
-    const handleProdIsTaxableChange = e => setProdIsTaxable(e.target.value);
+    const handleProdIsTaxableChange = option => setProdIsTaxable(option.value);
     const [prodCount, setProdCount] = useState(0);
     const handleProdCountChange = e => setProdCount(e.target.value);
-    const [prodOptionData, setProdOptionData] = useState([]);
     const [prodOptions, setProdOptions] = useState([]);
 
-    // Control input data for Markets
+    // Market state
     const [markName, setMarkName] = useState("");
     const handleMarkNameChange = e => setMarkName(e.target.value);
     const [markDate, setMarkDate] = useState("");
     const handleMarkDateChange = e => setMarkDate(e.target.value);
+    const [markProdOptions, setMarkProdOptions] = useState([]);
     const [markProds, setMarkProds] = useState([]);
-    const handleMarkProdsChange = e => setMarkProds(e.target.value);
+    const handleMarkProdsChange = options => setMarkProds(options || []);
 
-    // Toggle loading screen component
-    const [loading, setLoading] = useState(false);
+    // Maximum product allowed to be allocated to a market
+    const MAX_VAL = 999;
+    const [productCountAllocated, setProductCountAllocated] = useState([]);
+    const handleProductCountAllocatedChange = (e, i) => {
+        const newList = [...productCountAllocated];
+        const val = Math.floor(e.target.value);
+        if (val < 0) {
+            newList[i] = 0;
+        } else if (val > MAX_VAL) {
+            newList[i] = MAX_VAL;
+        } else {
+            newList[i] = val;
+        }
+        setProductCountAllocated(newList);
+    };
 
-    // Handle form submission for adding a Product or a Market
+    const [loading, setLoading] = useState(true);
+
     const handleSubmit = e => {
         e.preventDefault();
-        // Adding a Product
-        if (collection == "Products") {
+        if (collection === "Products") {
             axios.post(`${DB_URL}/addProducts`, {
                 name: prodName,
-                category: (prodCategoryOption == -1 ? prodNewCategory : prodCategoryOption),
-                isTaxable: (prodIsTaxable == 1 ? true : false),
+                category: (prodCategoryOption === -1 ? prodNewCategory : prodCategoryOption),
+                isTaxable: prodIsTaxable === 1,
                 count: prodCount
-            }).then(()=> {
+            }).then(() => {
                 setBanner([true, 0, `Product "${prodName}" added successfully!`]);
                 setProdName("");
                 setProdCategoryOption("");
@@ -51,15 +66,18 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
                 console.error(err);
                 setBanner([true, 2, "An error occurred while trying to add your product. Please try again later."]);
             });
-        }
-        // Adding a Market
-        else {
+        } else {
             axios.post(`${DB_URL}/addMarkets`, {
                 name: markName,
                 date: markDate,
-                products: markProds
+                products: markProds.map((p, i) => ({
+                    _id: p.value,
+                    name: p.label,
+                    countAllocated: Number(productCountAllocated[i] || 0),
+                    countRemaining: Number(productCountAllocated[i] || 0) // Same initial value
+                }))
             }).then(() => {
-                window.alert(`Market "${markName}" added successfully!`);
+                setBanner([true, 0, `Market "${markName}" added successfully!`]);
                 setMarkName("");
                 setMarkDate("");
                 setMarkProds([]);
@@ -67,34 +85,41 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
                 setRefresh(true);
             }).catch(err => {
                 console.error(err);
-                window.alert("An error occurred while trying to add your market. Please try again later.");
+                setBanner([true, 2, "An error occurred while trying to add your market. Please try again later."]);
             });
         }
     };
-    // Get Product categories to populate category dropdown
+
     useEffect(() => {
-        setLoading(true);
-        if (collection == "Products") {
-            axios.get(`${DB_URL}/get${collection}`).then(res => {
-                let list = res.data.map(item => {return item.category});
-                list = new Set(list);
-                list = [...list];
-                setProdOptionData([...list]);
+        if (collection === "Products") {
+            setLoading(true);
+            axios.get(`${DB_URL}/getProducts`).then(res => {
+                let list = res.data.map(item => ({ value: item.category, label: item.category }));
+                list.push({ value: -1, label: "-- New Category --" });
+                list = list.filter((a, i, self) => i === self.findIndex(b => b.value === a.value));
+                setProdOptions([...list]);
             }).catch(err => {
                 console.error(err);
-                setLoading(false);
-            });
+            }).finally(() => setLoading(false));
+        }
+        if (collection === "Markets") {
+            setLoading(true);
+            axios.get(`${DB_URL}/getProducts`).then(res => {
+                const list = res.data.map(item => ({ value: item._id, label: item.name }));
+                setMarkProdOptions(list);
+            }).catch(err => {
+                console.error(err);
+            }).finally(() => setLoading(false));
         }
     }, [addModal]);
-    
-    // Generate <option> elements for category dropdown
+
     useEffect(() => {
-        const list = prodOptionData.map((opt, i) => {
-            return <option value={opt} key={i}>{opt}</option>
+        setProductCountAllocated(prev => {
+            const arr = [...prev];
+            while (arr.length < markProds.length) arr.push(0);
+            return arr.slice(0, markProds.length);
         });
-        setProdOptions(list);
-        setLoading(false);
-    }, [prodOptionData]);
+    }, [markProds]);
 
     const handleClose = () => {
         setProdName("");
@@ -106,57 +131,85 @@ export default function AddModal({toggleAddModal, addModal, collection, DB_URL, 
         setMarkDate("");
         setMarkProds([]);
         toggleAddModal(false);
-    }
+    };
 
-    if (addModal) {
-        return (
-            <div id="addModalWrap" className="modalWrap">
-                <div id="addModal" className="modal">
-                    <h2>Add {collection == "Products" ? "Product" : "Market"}</h2>
-                    <div className="closeBtn" onClick={handleClose}>
-                        <div></div>
-                        <div></div>
-                    </div>
-                    {loading ? <Loading /> :
-                        collection == "Products" ?
-                        <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
+    if (!addModal) return null;
+
+    return (
+        <div id="addModalWrap" className="modalWrap">
+            <div id="addModal" className="modal">
+                <h2>Add {collection === "Products" ? "Product" : "Market"}</h2>
+                <div className="closeBtn" onClick={handleClose}>
+                    <div></div>
+                    <div></div>
+                </div>
+                {loading ? <Loading /> : collection === "Products" ?
+                    <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
+                        <div>
+                            <label htmlFor="prodName">Product Name:</label>
+                            <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
+                        </div>
+                        <div>
+                            <label htmlFor="prodCategory">Product Category:</label>
+                            {loading ? <Loading /> :
+                                <Select className="select" options={prodOptions} onChange={handleCategoryChange} required />
+                            }
+                        </div>
+                        {prodCategoryOption === -1 &&
                             <div>
-                                <label htmlFor="prodName">Product Name:</label>
-                                <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
-                            </div>
-                            <div>
-                                <label htmlFor="prodCategory">Product Category:</label>
-                                <select name="prodCategory" id="prodCategory" value={prodCategoryOption} onChange={handleSelCategoryChange} required >
-                                    <option value="" disabled hidden></option>
-                                    {prodOptions}
-                                    <option value={-1}>-- New Category --</option>
-                                </select>
-                            </div>
-                            {prodCategoryOption == -1 ?
-                                <div>
-                                    <label htmlFor="prodNewCategory">New Category:</label>
-                                    <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
+                                <label htmlFor="prodNewCategory">New Category:</label>
+                                <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
+                            </div>}
+                        <div>
+                            <label htmlFor="prodTaxable">Taxable?</label>
+                            <Select className="select" options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]} onChange={handleProdIsTaxableChange} required />
+                        </div>
+                        <div>
+                            <label htmlFor="prodCount">Product Count:</label>
+                            <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
+                        </div>
+                        <div>
+                            <button type="submit">Submit</button>
+                        </div>
+                    </form>
+                    :
+                    <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
+                        <div>
+                            <label htmlFor="markName">Market Name:</label>
+                            <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />
+                        </div>
+                        <div>
+                            <label htmlFor="markDate">Date:</label>
+                            <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />
+                        </div>
+                        <div>
+                            <label htmlFor="markProds">Market Products:</label>
+                            <Select className="select" options={markProdOptions} onChange={handleMarkProdsChange} isMulti />
+                        </div>
+                        <div>
+                            {markProds.length > 0 ?
+                                <div className="table">
+                                    <div className="tr send">
+                                        <div className="th">Name</div>
+                                        <div className="th">Allocated</div>
+                                    </div>
+                                    {markProds.map((item, i) => (
+                                        <TR key={`p${item.value}${i}`}
+                                            item={item}
+                                            i={i}
+                                            productCountAllocated={productCountAllocated}
+                                            handleProductCountAllocatedChange={handleProductCountAllocatedChange}
+                                            send={true} />
+                                    ))}
                                 </div>
                             : null}
-                            <div>
-                                <label htmlFor="prodTaxable">Taxable?</label>
-                                <select name="prodTaxable" id="prodTaxable" value={prodIsTaxable} onChange={handleProdIsTaxableChange} required >
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="prodCount">Product Count:</label>
-                                <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
-                            </div>
-                            <div>
-                                <button type="submit">Submit</button>
-                            </div>
-                        </form>
-                        : null
-                    }
-                </div>
+                        </div>
+                        <div>
+                            <button type="submit">Submit</button>
+                        </div>
+                    </form>
+                }
             </div>
-        );
-    }
+        </div>
+    );
 }

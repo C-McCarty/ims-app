@@ -39,15 +39,14 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
         return (
             <div className='listItem'>
                 <div className="listItemMain">
-                    <h3>{name}</h3>
+                    <div>
+                        <h4>{new Date(date).toISOString().split("T")[0]}</h4>
+                        <h3>{name}</h3>
+                    </div>
                     <div className='details' onClick={()=>{toggleDetails(!details)}}></div>
                     <div className='edit' onClick={()=>{toggleEditForm(true)}}></div>
                 </div>
                 <div className={details ? "listItemDetails" : "listItemDetails hidden"}>
-                    <div className="date">
-                        <h4>Date</h4>
-                        <p>{date}</p>
-                    </div>
                     <div className="products">
                         <h4>Products</h4>
                         {/* I am using <div> elements instead of semantic <table> elements
@@ -65,7 +64,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                                 {products.map((p, i) => {
                                     // Generate Product rows
                                     return (
-                                        <div className="tr" key={p._id}>
+                                        <div className="tr" key={`${p._id}${p.name}`}>
                                             <div className="td">{p.name}</div>
                                             <div className="td">{p.countAllocated}</div>
                                             <div className="td">{p.countRemaining}</div>
@@ -77,7 +76,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                         </div>
                     </div>
                 </div>
-                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={date} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
+                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={new Date(date).toISOString().split("T")[0].trim("")} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
             </div>
         );
     }

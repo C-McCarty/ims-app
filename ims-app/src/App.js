@@ -9,6 +9,7 @@ import Loading from './comp/Loading';
 import ListItem from './comp/ListItem';
 import AddModal from './comp/AddModal';
 import Banner from './comp/Banner';
+import ReportMenu from './comp/ReportMenu';
 
 export default function App() {
     /* ---- Constants ---- */
@@ -55,7 +56,11 @@ export default function App() {
             setLoading(true);
             // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
             axios.get(`${DB_URL}/get${collection}`).then(response => {
-                response.data.sort((a, b) => a.name.localeCompare(b.name));
+                if (collection === "Products") {
+                    response.data.sort((a, b) => a.name.localeCompare(b.name));
+                } else {
+                    response.data.sort((a, b) => b.date.localeCompare(a.date));
+                }
                 setViewData(response.data);
             });
         }
@@ -89,7 +94,7 @@ export default function App() {
             else if (collection === "Markets") {
                 const list = viewData.map((item, i) => {
                     return (
-                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} date={item.date} products={item.products} key={i} banner={banner} setBanner={setBanner} />
+                        <ListItem collection={collection} DB_URL={DB_URL} name={item.name} date={item.date} products={item.products} key={i} _id={item._id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
                     );
                 });
                 setViewItems(list);
@@ -191,13 +196,8 @@ export default function App() {
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>{collection}</h1>
-                        <div className="card">
-                            <h2>Recent Markets</h2>
-                        </div>
-                        <div className="card">
-                            <h2>Recent Sales</h2>
-                        </div>
+                        <h1>Generate Report</h1>
+                        <ReportMenu DB_URL={DB_URL} />
                     </main>
                 </div>
             );
