@@ -5,14 +5,17 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Protected using Render.com environment variables
 const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
 
+// Establish database connection
 mongoose.connect(URL).then(() => {
     console.log("MongoDB connected successfully");
 }).catch((err) => {
     console.error(`Error connecting to MongoDB: ${err}`);
 });
 
+// Schemas
 const SCHEMA_PRODUCT = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     name: String,
@@ -34,6 +37,7 @@ const SCHEMA_MARKET = mongoose.Schema({
     deleted: {type: Boolean, default: false}
 });
 
+// Models
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
 const MODEL_MARKET = mongoose.model("markets", SCHEMA_MARKET);
 
@@ -136,7 +140,7 @@ app.put("/updateMarkets", async (req, res) => {
     }
 });
 
-
+// Start server
 app.listen(PORT, () => {
     console.log("Server is running on Port " + PORT);
 });

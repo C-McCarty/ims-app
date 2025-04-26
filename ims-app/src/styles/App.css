@@ -253,6 +253,12 @@ button:active {
     border-bottom: 0.25vh solid black;
     flex-grow: 1;
 }
+.table.edit .tr {
+    grid-template-columns: 3fr 1fr 1fr;
+}
+.tr.send {
+    grid-template-columns: 3fr 1fr;
+}
 .td {
     display: flex;
     justify-content: end;
@@ -327,10 +333,12 @@ button:active {
     font-size: 1.25rem;
 }
 .popupForm div input,
-.popupForm div select {
+.select {
     margin-left: 1rem;
+    margin-right: 1rem;
     font-size: 1rem;
     padding: 0.125rem;
+    flex-grow: 1;
 }
 .popupForm div:has(button) {
     margin-top: 1rem;
@@ -427,4 +435,52 @@ button:active {
         opacity: 0;
         top: -50vh;
     }
+}
+
+#reportMenu {
+    width: 100%;
+}
+#reportMenu form {
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+#reportMenu form > div {
+    margin-bottom: 4rem;
+    height: 4vh;
+    width: 70%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+#reportMenu form div label {
+    flex-basis: 70%;
+}
+#reportMenu .reportSelect {
+    flex-basis: 70%;
+}
+#reportMenu form div > input {
+    height: 2rem;
+    flex-basis: 70%;
+}
+
+#reportWrap {
+    position: fixed;
+    top: 0vh;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background-color: #FFF8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#report {
+    width: 100%;
+    padding: 1rem;
+    background-color: white;
+    box-shadow: 0 0 10px #0008;
+    position: relative;
 }
