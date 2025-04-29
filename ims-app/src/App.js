@@ -13,9 +13,7 @@ import ReportMenu from './comp/ReportMenu';
 
 export default function App() {
     /* ---- Constants ---- */
-    // ---------------------------------- Change to environment variable for deployment
-    // const DB_URL = process.env.DB_URL;
-    const DB_URL = "https://tmcf-ims-app.onrender.com";
+    const DB_URL = process.env.DB_URL;
 
     /* ---- useState variables ---- */
 
@@ -121,10 +119,11 @@ export default function App() {
 
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
-        // ------------------------- Change to actually handle authentication before deployment
-        toggleSignedIn(true);
-        setPage(0);
-        setCollection("Dashboard");
+        if (DB === process.env.USER && PWD === process.env.PASS) {
+            toggleSignedIn(true);
+            setPage(0);
+            setCollection("Dashboard");
+        }
     }
 
     // User has signed in
