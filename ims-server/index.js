@@ -151,7 +151,7 @@ app.post("/authenticate", async (req, res) => {
     const {USER, PASS} = req.body;
     console.log(process.env.AUTH_ID);
     try {
-        const CREDENTIALS = await MODEL_USER.findOne({id: process.env.AUTH_ID});
+        const CREDENTIALS = await MODEL_USER.findOne({id: "681051b647d0e96728d98ef7"});
         if (CREDENTIALS.USER === USER && CREDENTIALS.PASS === PASS) {
             res.json({AUTH: true});
         } else {
