@@ -10,10 +10,11 @@ import ListItem from './comp/ListItem';
 import AddModal from './comp/AddModal';
 import Banner from './comp/Banner';
 import ReportMenu from './comp/ReportMenu';
+import { sha256 } from 'js-sha256';
 
 export default function App() {
     /* ---- Constants ---- */
-    const DB_URL = process.env.DB_URL;
+    const DB_URL = "https://tmcf-ims-app.onrender.com";
 
     /* ---- useState variables ---- */
 
@@ -119,11 +120,16 @@ export default function App() {
 
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
-        if (DB === process.env.USER && PWD === process.env.PASS) {
-            toggleSignedIn(true);
-            setPage(0);
-            setCollection("Dashboard");
-        }
+        axios.post(`${DB_URL}/authenticate`, {
+            USER: DB,
+            PASS: PWD
+        }).then(res => {
+            if (res.AUTH) {
+                toggleSignedIn(true);
+                setPage(0);
+                setCollection("Dashboard");
+            }
+        });
     }
 
     // User has signed in

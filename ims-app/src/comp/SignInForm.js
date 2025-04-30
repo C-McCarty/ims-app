@@ -13,13 +13,7 @@ export default function SignInForm({signedIn, handleSignIn}) {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        // Remove the OR statement from this conditional before deployment
-        if ((DB === process.env.USER && PWD === process.env.PASS) || true) {
-            handleSignIn();
-        } else {
-            setLoading(false);
-            toggleSignInFail(true);
-        }
+        handleSignIn(DB, PWD);
     }
     useEffect(() => {
         setLoading(false);

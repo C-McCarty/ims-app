@@ -8,6 +8,7 @@ app.use(express.json());
 // Protected using Render.com environment variables
 const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
 
+
 // Establish database connection
 mongoose.connect(URL).then(() => {
     console.log("MongoDB connected successfully");
@@ -36,10 +37,16 @@ const SCHEMA_MARKET = mongoose.Schema({
     }],
     deleted: {type: Boolean, default: false}
 });
+const SCHEMA_USER = mongoose.Schema({
+    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+    USER: String,
+    PASS: String
+});
 
 // Models
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
 const MODEL_MARKET = mongoose.model("markets", SCHEMA_MARKET);
+const MODEL_USER = mongoose.model("auth", SCHEMA_USER);
 
 // Getter Endpoints
 app.get("/getProducts", (req, res) => {
@@ -71,7 +78,6 @@ app.post("/addProducts", async (req, res) => {
         res.status(500).send(`Error adding product: ${err}`);
     }
 });
-
 app.post("/addMarkets", async (req, res) => {
     const { name, date, products } = req.body;
     try {
@@ -95,7 +101,6 @@ app.put("/deleteProduct", async (req, res) => {
         res.status(500).send(`Error deleting product: ${err}`);
     }
 });
-
 app.put("/deleteMarket", async (req, res) => {
     const { _id } = req.body;
     try {
@@ -137,6 +142,22 @@ app.put("/updateMarkets", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send(`Error updating market: ${err}`);
+    }
+});
+
+// User Authentication
+app.post("/authenticate", async (req, res) => {
+    const {USER, PASS} = req.body;
+    try {
+        const VALID_AUTH = await MODEL_USER.findOne({USER: USER, PASS: PASS});
+        if (VALID_AUTH) {
+            res.json({AUTH: true});
+        } else {
+            res.json({AUTH: false});
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send(`Error authenticating user: ${err}`);
     }
 });
 
