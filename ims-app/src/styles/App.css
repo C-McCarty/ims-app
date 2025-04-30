@@ -82,6 +82,7 @@ button:active {
     position: absolute;
     bottom: 1vh;
     right: 1vh;
+    z-index: 1000;
 }
 
 #modalWrap {
@@ -219,6 +220,7 @@ button:active {
     position: relative;
     display: flex;
     flex-direction: column;
+    flex-wrap: nowrap;
     height: 100%;
 }
 .tr:nth-child(even) { background-color: #fff; }
@@ -231,7 +233,7 @@ button:active {
     flex-grow: 0;
 }
 .thead .th {
-    text-align: right;
+    text-align: center;
 }
 .table:has(.remove) .thead .th {
     text-align: center;
@@ -262,7 +264,7 @@ button:active {
 .table.reportSales .tr { grid-template-columns: 30% 30% 30% 10%; }
 .td {
     display: flex;
-    justify-content: end;
+    justify-content: center;
     align-items: center;
     font-family: "Azeret Mono", "Courier New", Courier, monospace;
 }
