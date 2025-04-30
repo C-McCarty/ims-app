@@ -107,6 +107,7 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
             axios.get(`${DB_URL}/getProducts`).then(res => {
                 const list = res.data.map(item => ({ value: item._id, label: item.name }));
                 setMarkProdOptions(list);
+                setMarkProds(list);
             }).catch(err => {
                 console.error(err);
             }).finally(() => setLoading(false));
@@ -184,7 +185,7 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                         </div>
                         <div>
                             <label htmlFor="markProds">Market Products:</label>
-                            <Select className="select" options={markProdOptions} onChange={handleMarkProdsChange} isMulti />
+                            <Select className="select" options={markProdOptions} value={markProds} onChange={handleMarkProdsChange} isMulti />
                         </div>
                         <div>
                             {markProds.length > 0 ?

@@ -9,7 +9,7 @@
 
 main {
     width: 100vw;
-    height: 90vh;
+    height: 89vh;
     background-color: #fff;
     display: flex;
     align-items: center;
@@ -55,10 +55,9 @@ button:active {
 
 
 #dashboard {
-    display: none;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    height: 65vh;
     width: 90%;
 }
 .widget {
@@ -66,14 +65,9 @@ button:active {
     margin: 1rem;
     border-radius: 10px;
     padding: 1rem;
-}
-.widget.s2x2,
-.widget.s2x1 {
-    grid-column: span 2;
-}
-.widget.s2x2,
-.widget.s1x2 {
-    grid-row: span 2;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 #settings {
@@ -223,14 +217,18 @@ button:active {
 .table {
     margin: 0;
     position: relative;
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
+.tr:nth-child(even) { background-color: #fff; }
+.tr:nth-child(odd) { background-color: #f8f8f8; }
 .tr.thead {
     position: sticky;
     font-weight: bold;
     background-color: #fff;
+    flex-basis: content;
+    flex-grow: 0;
 }
 .thead .th {
     text-align: right;
@@ -289,6 +287,7 @@ button:active {
     right: 0;
     bottom: 0vh;
     backdrop-filter: blur(5px);
+    background-color: #FFF8;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -297,6 +296,7 @@ button:active {
 }
 .modal {
     width: 100vw;
+    max-height: 100vh;
     background-color: #fff;
     position: relative;
     padding: 1rem;
@@ -306,11 +306,14 @@ button:active {
 .popupForm {
     display: flex;
     flex-wrap: wrap;
+    max-height: 70vh;
+    overflow-y: scroll;
 }
 .popupForm > div {
     display: flex;
     flex-wrap: wrap;
     padding: 0.5rem;
+    width: 100%;
 }
 .popupForm label {
     flex-basis: 100%;
@@ -326,6 +329,10 @@ button:active {
     font-size: 1rem;
     padding: 0.125rem;
     flex-grow: 1;
+}
+.select > div > div {
+    max-height: 4rem;
+    overflow-y: scroll;
 }
 .popupForm div:has(button) {
     margin-top: 1rem;
@@ -366,6 +373,11 @@ button:active {
     padding: 0;
     border-radius: 0;
     border: none;
+}
+.modal .popupForm .table {
+    max-height: 8rem;
+    overflow-y: scroll;
+    width: 100%;
 }
 
 .banner {
