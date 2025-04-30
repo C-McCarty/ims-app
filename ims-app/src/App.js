@@ -20,6 +20,7 @@ export default function App() {
 
     // Controls user authentication
     const [signedIn, toggleSignedIn] = useState(false);
+    const [signInFail, toggleSignInFail] = useState(false);
 
     // Stores Product data from the database
     const [viewData, setViewData] = useState([]);
@@ -128,6 +129,8 @@ export default function App() {
                 toggleSignedIn(true);
                 setPage(0);
                 setCollection("Dashboard");
+            } else {
+                toggleSignInFail(true);
             }
         });
     }
@@ -219,7 +222,7 @@ export default function App() {
         return (
             <div className='App'>
                 <Header />
-                <SignInForm signedIn={signedIn} handleSignIn={handleSignIn} />
+                <SignInForm signedIn={signedIn} handleSignIn={handleSignIn} signInFail={signInFail} toggleSignInFail={toggleSignInFail} />
             </div>
         );
     }

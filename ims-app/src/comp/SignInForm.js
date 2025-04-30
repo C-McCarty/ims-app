@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import "../styles/signInStyles.css";
 
-export default function SignInForm({signedIn, handleSignIn}) {
+export default function SignInForm({signedIn, handleSignIn, signInFail, toggleSignInFail}) {
     const [loading, setLoading] = useState(false);
     const [DB, setDB] = useState("");
-    const handleDB = e => setDB(e.target.value.toString());
+    const handleDB = e => {
+        toggleSignInFail(false);
+        setDB(e.target.value.toString());
+    };
     const [PWD, setPWD] = useState("");
-    const handlePWD = e => setPWD(e.target.value.toString());
-    const [signInFail, toggleSignInFail] = useState(false);
+    const handlePWD = e => {
+        toggleSignInFail(false);
+        setPWD(e.target.value.toString());
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
