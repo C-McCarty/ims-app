@@ -40,9 +40,8 @@ const SCHEMA_MARKET = mongoose.Schema({
 const SCHEMA_USER = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     USER: String,
-    PASS: String,
-    id: String
-});
+    PASS: String
+}, { collection: "auth" });
 
 // Models
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
@@ -149,9 +148,8 @@ app.put("/updateMarkets", async (req, res) => {
 // User Authentication
 app.post("/authenticate", async (req, res) => {
     const {USER, PASS} = req.body;
-    console.log(process.env.AUTH_ID);
     try {
-        const CREDENTIALS = await MODEL_USER.findOne({USER: USER, PASS: PASS});
+        const CREDENTIALS = await MODEL_USER.findOne({_id: process.env.AUTH_ID});
         if (CREDENTIALS.USER === USER && CREDENTIALS.PASS === PASS) {
             res.json({AUTH: true});
         } else {
