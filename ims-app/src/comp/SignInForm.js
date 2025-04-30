@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import "../styles/signInStyles.css";
 
-export default function SignInForm({signedIn, handleSignIn, signInFail, toggleSignInFail}) {
-    const [loading, setLoading] = useState(false);
+export default function SignInForm({loading, setLoading, signedIn, handleSignIn, signInFail, toggleSignInFail}) {
     const [DB, setDB] = useState("");
     const handleDB = e => {
         toggleSignInFail(false);

@@ -409,7 +409,7 @@ button:active {
 }
 .success { background-image: url(../media/success.svg); }
 .info { background-image: url(../media/info.svg); }
-.error { background-image: url(../media/error.svg); }
+.banner .error { background-image: url(../media/error.svg); }
 
 @keyframes notify {
     0% {

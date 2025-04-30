@@ -125,13 +125,13 @@ export default function App() {
             USER: sha256(DB),
             PASS: sha256(PWD)
         }).then(res => {
-            console.log(res.data)
             if (res.data.AUTH) {
                 toggleSignedIn(true);
                 setPage(0);
                 setCollection("Dashboard");
             } else {
                 toggleSignInFail(true);
+                setLoading(false);
             }
         });
     }
@@ -223,7 +223,7 @@ export default function App() {
         return (
             <div className='App'>
                 <Header />
-                <SignInForm signedIn={signedIn} handleSignIn={handleSignIn} signInFail={signInFail} toggleSignInFail={toggleSignInFail} />
+                <SignInForm loading={loading} setLoading={setLoading} signedIn={signedIn} handleSignIn={handleSignIn} signInFail={signInFail} toggleSignInFail={toggleSignInFail} />
             </div>
         );
     }
