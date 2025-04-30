@@ -48,6 +48,9 @@ export default function App() {
     /* 3 = Reports */
     const [page, setPage] = useState(0);
 
+    const [bestSellers, setBestSellers] = useState([]);
+    const [recentMarkets, setRecentMarkets] = useState([]);
+
     /* ---- useEffect functions ---- */
 
     // Get Products or Markets that have not been soft deleted
@@ -59,7 +62,14 @@ export default function App() {
                 if (collection === "Products") {
                     response.data.sort((a, b) => a.name.localeCompare(b.name));
                 } else {
-                    response.data.sort((a, b) => b.date.localeCompare(a.date));
+                    response.data.sort((a, b) => {
+                        const D1 = new Date(a.date);
+                        const D2 = new Date(b.date);
+                        if (D1 === D2) {
+                            return a.name.localeCompare(b.name);
+                        }
+                        return D2 - D1;
+                    });
                 }
                 setViewData(response.data);
             });
@@ -135,6 +145,55 @@ export default function App() {
             }
         });
     }
+    useEffect(() => {
+        if (page === 0) {
+            axios.get(`${DB_URL}/getMarkets`).then(res => {
+                const prodSoldList = res.data.flatMap(m => m.products.map(p => ({ name: p.name, sold: p.countAllocated - p.countRemaining })));
+                const prodTotals = [];
+                // Combine sold amount for each Product
+                for (const a of prodSoldList) {
+                    const prod = prodTotals.find(b => a.name === b.name);
+                    if (prod) { prod.sold += a.sold; }
+                    else { prodTotals.push({...a}); }
+                }
+                // Sort by most sold then by name
+                prodTotals.sort((a, b) => {
+                    if (a.sold === b.sold) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return b.sold - a.sold;
+                });
+                // Create a table list of the top 5 Products sold
+                const top5 = prodTotals.map(p => {
+                    return (
+                        <div className="tr" key={p.name+p.sold}>
+                            <div className="td">{p.name}</div>
+                            <div className="td">{p.sold}</div>
+                        </div>
+                    );
+                }).slice(0,5);
+                setBestSellers(top5);
+                const marketList = res.data.map(m => ({ name: m.name, date: m.date }));
+                marketList.sort((a, b) => {
+                    const D1 = new Date(a.date);
+                    const D2 = new Date(b.date);
+                    if (D1 === D2) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return D2 - D1;
+                }).slice(0, 5);
+                setRecentMarkets(marketList.map(m => {
+                    const D = new Date(m.date);
+                    return (
+                        <div className="tr">
+                            <div className="td">{m.name}</div>
+                            <div className="td">{`${(String(D.getUTCMonth() + 1)).padStart(2, "0")}/${String(D.getUTCDate()).padStart(2, "0")}/${String(D.getUTCFullYear())}`}</div>
+                        </div>
+                    );
+                }));
+            });
+        }
+    }, [page]);
 
     // User has signed in
     if (signedIn) {
@@ -147,17 +206,29 @@ export default function App() {
                         <h1>{collection}</h1>
                         <div id="settings" onClick={()=>{toggleModalOpen(true)}}></div>
                         <div id="dashboard">
-                            <div className="widget s1x2">
-                                <h2>Recent Markets</h2>
+                            <div className="widget">
+                                <h3>Recent Markets</h3>
+                                <div className="table two">
+                                    <div className="thead tr">
+                                        <div className="th">Name</div>
+                                        <div className="th">Date</div>
+                                    </div>
+                                    <div className="tbody">
+                                        {recentMarkets}
+                                    </div>
+                                </div>
                             </div>
                             <div className="widget">
-                                <h2>Quick Links</h2>
-                            </div>
-                            <div className="widget s2x2">
-                                <h2>Report</h2>
-                            </div>
-                            <div className="widget">
-                                <h2>Analysis</h2>
+                                <h3>Top Products (All Time)</h3>
+                                <div className="table two">
+                                    <div className="thead tr">
+                                        <div className="th">Name</div>
+                                        <div className="th">Sold</div>
+                                    </div>
+                                    <div className="tbody">
+                                        {bestSellers}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </main>
