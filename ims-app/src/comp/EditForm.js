@@ -254,36 +254,38 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                                     <label htmlFor="markProds">Products:</label>
                                         <Select className="select" options={markProdListOptions} onChange={handleUpdateMarkProdList} value={markProdList} isMulti />
                                 </div>
-                                <div className="table edit">
-                                    <div className="tr thead">
-                                        <div className="th">Name</div>
-                                        <div className="th">Sent</div>
-                                        <div className="th">Left</div>
-                                    </div>
-                                    <div className="tbody">
-                                        {markProdList.map((p, i) => (
-                                            <div className="tr" key={`${p.value}${p.label}${i}`}>
-                                                <div className="td">{p.label}</div>
-                                                <div className="td">
-                                                    <input
-                                                        type="number"
-                                                        name={`prodAllocated${i}`}
-                                                        id={`prodAllocated${i}`}
-                                                        value={productCountAllocated[i] || 0}
-                                                        onChange={e => handleProductCountAllocatedChange(e, i)}
-                                                    />
+                                <div>
+                                    <div className="table edit">
+                                        <div className="tr thead">
+                                            <div className="th">Name</div>
+                                            <div className="th">Sent</div>
+                                            <div className="th">Left</div>
+                                        </div>
+                                        <div className="tbody">
+                                            {markProdList.map((p, i) => (
+                                                <div className="tr" key={`${p.value}${p.label}${i}`}>
+                                                    <div className="td">{p.label}</div>
+                                                    <div className="td">
+                                                        <input
+                                                            type="number"
+                                                            name={`prodAllocated${i}`}
+                                                            id={`prodAllocated${i}`}
+                                                            value={productCountAllocated[i] || 0}
+                                                            onChange={e => handleProductCountAllocatedChange(e, i)}
+                                                        />
+                                                    </div>
+                                                    <div className="td">
+                                                        <input
+                                                            type="number"
+                                                            name={`prodRemaining${i}`}
+                                                            id={`prodRemaining${i}`}
+                                                            value={productCountRemaining[i] || 0}
+                                                            onChange={e => handleProductCountRemainingChange(e, i)}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="td">
-                                                    <input
-                                                        type="number"
-                                                        name={`prodRemaining${i}`}
-                                                        id={`prodRemaining${i}`}
-                                                        value={productCountRemaining[i] || 0}
-                                                        onChange={e => handleProductCountRemainingChange(e, i)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </> }
