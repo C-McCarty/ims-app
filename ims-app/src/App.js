@@ -122,10 +122,11 @@ export default function App() {
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
         axios.post(`${DB_URL}/authenticate`, {
-            USER: DB,
-            PASS: PWD
+            USER: sha256(DB),
+            PASS: sha256(PWD)
         }).then(res => {
-            if (res.AUTH) {
+            console.log(res.data)
+            if (res.data.AUTH) {
                 toggleSignedIn(true);
                 setPage(0);
                 setCollection("Dashboard");
