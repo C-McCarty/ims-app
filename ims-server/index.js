@@ -149,8 +149,8 @@ app.put("/updateMarkets", async (req, res) => {
 app.post("/authenticate", async (req, res) => {
     const {USER, PASS} = req.body;
     try {
-        const VALID_AUTH = await MODEL_USER.findOne({USER: USER, PASS: PASS});
-        if (VALID_AUTH) {
+        const CREDENTIALS = await MODEL_USER.findOne({_id: new mongoose.Types.ObjectId(process.env.AUTH_ID)});
+        if (CREDENTIALS.USER === USER && CREDENTIALS.PASS === PASS) {
             res.json({AUTH: true});
         } else {
             res.json({AUTH: false});
