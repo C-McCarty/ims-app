@@ -111,8 +111,8 @@ export default function App() {
                 });
                 setViewItems(list);
             }
-            setLoading(false);
         }
+        setLoading(false);
     }, [viewData, page]);
     // Turn off the loading screen once the viewItems list has propagated
     useEffect(() => {
