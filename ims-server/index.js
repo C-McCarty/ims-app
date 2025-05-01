@@ -37,16 +37,10 @@ const SCHEMA_MARKET = mongoose.Schema({
     }],
     deleted: {type: Boolean, default: false}
 });
-const SCHEMA_USER = mongoose.Schema({
-    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-    USER: String,
-    PASS: String
-}, { collection: "auth" });
 
 // Models
 const MODEL_PRODUCT = mongoose.model("products", SCHEMA_PRODUCT);
 const MODEL_MARKET = mongoose.model("markets", SCHEMA_MARKET);
-const MODEL_USER = mongoose.model("auth", SCHEMA_USER);
 
 // Getter Endpoints
 app.get("/getProducts", (req, res) => {
@@ -142,22 +136,6 @@ app.put("/updateMarkets", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send(`Error updating market: ${err}`);
-    }
-});
-
-// User Authentication
-app.post("/authenticate", async (req, res) => {
-    const {USER, PASS} = req.body;
-    try {
-        const CREDENTIALS = await MODEL_USER.findOne({_id: process.env.AUTH_ID});
-        if (CREDENTIALS.USER === USER && CREDENTIALS.PASS === PASS) {
-            res.json({AUTH: true});
-        } else {
-            res.json({AUTH: false});
-        }
-    } catch (err) {
-        console.error(err)
-        res.status(500).send(`Error authenticating user: ${err}`);
     }
 });
 
