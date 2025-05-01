@@ -147,9 +147,11 @@ export default function App() {
         });
     }
     useEffect(() => {
-        toggleSignedIn(true);
-        setPage(0);
-        setCollection("Dashboard");
+        if (DB_URL.length > 0) {
+            toggleSignedIn(true);
+            setPage(0);
+            setCollection("Dashboard");
+        }
     }, [DB_URL]);
     useEffect(() => {
         if (page === 0) {
