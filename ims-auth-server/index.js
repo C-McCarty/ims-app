@@ -31,7 +31,7 @@ app.post("/authenticate", async (req, res) => {
     try {
         const CREDENTIALS = await MODEL_USER.findOne({USER: USER, PASS: PASS});
         if (CREDENTIALS !== null) {
-            res.json({AUTH: true});
+            res.json({AUTH: true, URL: URL});
         } else {
             res.json({AUTH: false});
         }

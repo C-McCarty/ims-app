@@ -139,15 +139,18 @@ export default function App() {
             PASS: sha256(PWD)
         }).then(res => {
             if (res.data.AUTH) {
-                toggleSignedIn(true);
-                setPage(0);
-                setCollection("Dashboard");
+                setDB_URL(res.data.URL);
             } else {
                 toggleSignInFail(true);
                 setLoading(false);
             }
         });
     }
+    useEffect(() => {
+        toggleSignedIn(true);
+        setPage(0);
+        setCollection("Dashboard");
+    }, DB_URL);
     useEffect(() => {
         if (page === 0) {
             axios.get(`${DB_URL}/getMarkets`).then(res => {
