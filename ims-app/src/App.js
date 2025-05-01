@@ -14,7 +14,6 @@ import { sha256 } from 'js-sha256';
 
 export default function App() {
     /* ---- Constants ---- */
-    // const DB_URL = "https://tmcf-ims-app.onrender.com";
 
     /* ---- useState variables ---- */
 
@@ -134,7 +133,7 @@ export default function App() {
 
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
-        axios.post(`${DB_URL}/authenticate`, {
+        axios.post(`https://ims-auth.onrender.com/authenticate`, {
             USER: sha256(DB),
             PASS: sha256(PWD)
         }).then(res => {
