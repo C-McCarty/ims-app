@@ -150,7 +150,7 @@ export default function App() {
         toggleSignedIn(true);
         setPage(0);
         setCollection("Dashboard");
-    }, DB_URL);
+    }, [DB_URL]);
     useEffect(() => {
         if (page === 0) {
             axios.get(`${DB_URL}/getMarkets`).then(res => {
