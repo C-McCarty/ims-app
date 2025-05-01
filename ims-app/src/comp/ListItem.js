@@ -50,7 +50,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                     <div className="products">
                         <h4>Products</h4>
                         {/* I am using <div> elements instead of semantic <table> elements
-                        {/* because they do not support styling the same way. Using <div>
+                        {/* because the latter do not support styling the same way. Using <div>
                         {/* elements also gives me greater control over the layout. */}
                         <div className="table">
                             <div className="tr thead">
@@ -61,7 +61,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                                 <div className="th">Sold</div>
                             </div>
                             <div className="tbody">
-                                {products.map((p, i) => {
+                                {products?.map((p, i) => {
                                     // Generate Product rows
                                     return (
                                         <div className="tr" key={`${p._id}${p.name}`}>

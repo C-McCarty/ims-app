@@ -5,11 +5,14 @@
     height: 100vh;
     justify-content: center;
     background-color: #fff;
+    /* overflow-y: hidden; */
 }
-
+.App:has(#subNav) main {
+    height: 80vh;
+}
 main {
     width: 100vw;
-    height: 89vh;
+    height: 90vh;
     background-color: #fff;
     display: flex;
     align-items: center;
@@ -83,6 +86,7 @@ button:active {
     bottom: 1vh;
     right: 1vh;
     z-index: 1000;
+    cursor: pointer;
 }
 
 #modalWrap {
@@ -116,6 +120,7 @@ button:active {
     right: 1vh;
     height: 8vh;
     width: 8vh;
+    cursor: pointer;
 }
 .closeBtn div {
     background-color: #0088FF;
@@ -143,6 +148,7 @@ button:active {
     background-position: center;
     background-color: #0088FF;
     border-radius: 100%;
+    cursor: pointer;
 }
 
 @keyframes moveIn {
@@ -161,7 +167,11 @@ button:active {
         opacity: 1;
     }
 }
-
+#list {
+    padding: 1vh;
+    overflow-y: auto;
+    height: 65vh;
+}
 .listItem {
     box-shadow: 0 0 10px #0003;
     width: 90vw;
@@ -198,30 +208,26 @@ button:active {
 .listItemDetails {
     width: 90%;
     overflow: hidden;
-    height: 11rem;
-    transition: all 1s;
+    max-height: 25vh;
+    transition: all 0.5s linear;
 }
-.listItemDetails h4 {
-    margin: 0.25rem;
-}
+.listItemDetails h4 { margin: 0.25rem; }
 .listItemDetails p {
     margin: 0;
     margin-left: 1rem;
 }
-.listItemDetails.hidden {
-    height: 0vh;
-}
+.listItemDetails.hidden { max-height: 0vh; }
+.listItem:has(.add) { cursor: pointer; }
 /* Market Products Section */
-.listItemDetails:has(.products):not(.hidden) {
-    height: 15rem;
-}
 .table {
     margin: 0;
+    max-height: 18vh;
     position: relative;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     height: 100%;
+    overflow-y: auto;
 }
 .tr:nth-child(even) { background-color: #fff; }
 .tr:nth-child(odd) { background-color: #f8f8f8; }
@@ -243,8 +249,6 @@ button:active {
     text-align: left;
 }
 .tbody {
-    overflow-y: scroll;
-    height: 7.5rem;
     padding: 0;
     width: 100%;
 }
@@ -309,7 +313,7 @@ button:active {
     display: flex;
     flex-wrap: wrap;
     max-height: 70vh;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 .popupForm > div {
     display: flex;
@@ -334,7 +338,7 @@ button:active {
 }
 .select > div > div {
     max-height: 4rem;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 .popupForm div:has(button) {
     margin-top: 1rem;
@@ -378,7 +382,6 @@ button:active {
 }
 .modal .popupForm .table {
     max-height: 8rem;
-    overflow-y: scroll;
     width: 100%;
 }
 
@@ -518,15 +521,15 @@ button:active {
 }
 
 @media screen and (min-width: 700px) {
-    #report { width: 30%; }
     .App { overflow: hidden; }
+    header nav {flex-basis: 50vw;}
+    #subNav { flex-basis: 50%; }
+    #report { width: 30%; }
     #list {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
         width: 30%;
-        height: 65vh;
-        overflow-y: scroll;
     }
     .listItem { width: 90%; }
     .modal { width: 50%; }
