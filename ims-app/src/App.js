@@ -48,7 +48,7 @@ export default function App() {
     /* 1 = Unused
     /* 2 = List
     /* 3 = Reports */
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(-1);
 
     const [bestSellers, setBestSellers] = useState([]);
     const [recentMarkets, setRecentMarkets] = useState([]);
