@@ -81,10 +81,10 @@ export default function Report({type, data, query, toggleReport}) {
     
     // Export sales metrics to CSV
     const exportCSV = () => {
-        const csvData = `Product Name,Market Date,Count Sold\n` + markProdData.map(p => {
+        const csvData = `Product Name,Market Name,Market Date,Count Sold\n` + markProdData.map(p => {
             const D = new Date(p.date);
             const DATE_STRING = `${(String(D.getUTCMonth() + 1)).padStart(2, "0")}/${String(D.getUTCDate()).padStart(2, "0")}/${String(D.getUTCFullYear())}`;
-            return `${p.name},${DATE_STRING},${p.sold}\n`;
+            return `${p.name},${p.marketName},${DATE_STRING},${p.sold}\n`;
         }).join("");
         const BLOB = new Blob([csvData], {type: "text/csv"});
         const CSV_URL = URL.createObjectURL(BLOB);
@@ -94,9 +94,9 @@ export default function Report({type, data, query, toggleReport}) {
             CSV_LINK.download = `${query}.csv` || "data.csv";
         } else {
             const D1 = new Date(query[0]);
-            const DATE_STRING_1 = `${(String(D1.getUTCMonth() + 1)).padStart(2, "0")}/${String(D1.getUTCDate()).padStart(2, "0")}/${String(D1.getUTCFullYear())}`;
+            const DATE_STRING_1 = `${(String(D1.getUTCMonth() + 1)).padStart(2, "0")}.${String(D1.getUTCDate()).padStart(2, "0")}.${String(D1.getUTCFullYear())}`;
             const D2 = new Date(query[1]);
-            const DATE_STRING_2 = `${(String(D2.getUTCMonth() + 1)).padStart(2, "0")}/${String(D2.getUTCDate()).padStart(2, "0")}/${String(D2.getUTCFullYear())}`;
+            const DATE_STRING_2 = `${(String(D2.getUTCMonth() + 1)).padStart(2, "0")}.${String(D2.getUTCDate()).padStart(2, "0")}.${String(D2.getUTCFullYear())}`;
             CSV_LINK.download = `${DATE_STRING_1}-${DATE_STRING_2}.csv` || "data.csv";
         }
         document.body.appendChild(CSV_LINK);
