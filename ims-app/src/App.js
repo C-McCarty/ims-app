@@ -139,6 +139,7 @@ export default function App() {
             PASS: sha256(PWD)
         }).then(res => {
             if (res.data.AUTH) {
+                
                 toggleSignedIn(true);
                 setPage(0);
                 setCollection("Dashboard");
