@@ -22,14 +22,14 @@ export default function Header({nav=false, toggleSignedIn, setPage, setCollectio
                         <div className={activeNav == 3 ? "active navBtn repo" : "navBtn repo"} onClick={()=>{toggleActiveNav(3); handleClick(3, "Report")}}></div>
                     </nav>
                 </header>
-                <div id="subNav">
-                    {activeNav === 0 ?
-                        <>
-                            <div className={activeSubNav == 0 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(0); setCollection("Products")}}>Products</div>
-                            <div className={activeSubNav == 1 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(1); setCollection("Markets")}}>Markets</div>
-                        </>
-                    : null}
-                </div>
+                {activeNav === 0 ?
+                    <div id="subNav">
+                            <>
+                                <div className={activeSubNav == 0 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(0); setCollection("Products")}}><h4>Products</h4></div>
+                                <div className={activeSubNav == 1 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(1); setCollection("Markets")}}><h4>Markets</h4></div>
+                            </>
+                    </div>
+                : null}
             </>
         );
     } else {

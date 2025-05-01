@@ -2,6 +2,7 @@ header {
     width: 100vw;
     height: 10vh;
     display: flex;
+    justify-content: center;
     align-items: center;
     background-color: #0088FF;
     position: sticky;
@@ -25,69 +26,6 @@ header:has(#logo) {
 .spacer {
     flex-grow: 1;
 }
-
-/* header nav {
-    width: 75%;
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-}
-nav > div {
-    position: relative;
-    height: 10vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-nav > .navDropDown,
-nav > .navBtn {
-    flex-basis: 20%;
-}
-.navDropDown:hover {
-    box-shadow: 0 5px 10px #0003;
-    z-index: 1;
-}
-nav h3 {
-    position: relative;
-    z-index: 1;
-    font-size: 2rem;
-    user-select: none;
-}
-nav h4 {
-    padding: 0;
-    margin: 0;
-    color: #000;
-}
-.navBtn {
-    font-size: 1.5rem;
-    background-color: #eee;
-    padding: 2rem;
-    cursor: pointer;
-    transition: all 0.125s ease-in-out;
-}
-.navBtn:hover {
-    background-color: #ddd;
-}
-nav .navDropDown .options {
-    position: absolute;
-    top: 10vh;
-    height: 0%;
-    overflow: hidden;
-    background-color: #eee;
-    transition: all 0.25s ease-in-out;
-    width: 100%;
-}
-nav .navDropDown:hover .options,
-nav .navDropDown:hover .options:hover {
-    height: 500%;
-}
-nav .navDropDown:nth-child(2):hover .options,
-nav .navDropDown:nth-child(2):hover .options:hover {
-    height: 250%;
-}
-.options {
-    box-shadow: 0 5px 5px #0003;
-} */
 nav {
     display: flex;
     flex-basis: 100vw;
@@ -105,6 +43,7 @@ nav {
     z-index: 1;
     top: 0;
     transition: all 0.5s;
+    cursor: pointer;
 }
 .list {
     background-image: url(../media/list.svg);
@@ -120,27 +59,45 @@ nav {
     top: 1.1vh;
 }
 #subNav {
-    margin-top: 0.5rem;
     width: 100vw;
     display: flex;
-    background-image: linear-gradient(to right, #0088FF 0%, #0088FF 25%, #fff 25%, #fff 50%, #0088FF 50%, #0088FF 100%);
+    background-image: linear-gradient(to right, #fff 0%, #fff 25%, #0088FF 25%, #0088FF 50%, #fff 50%, #fff 100%);
     background-size: 200%;
     background-position-x: left ;
     transition: all 0.5s;
+    height: 10vh;
+    overflow-y: hidden;
 }
 #subNav div {
     flex-basis: 50%;
+    height: 10vh;
     text-align: center;
-    padding: 1rem;
-    font-weight: bold;
     position: relative;
     z-index: 10;
-    color: #fff;
     transition: all 0.25s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    border: 1vh solid #fff;
 }
-#subNav .subNav.active {
-    color: #0088FF;
-    box-shadow: none;
+#subNav h4 {
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    width: 100%;
+    border: 1vh solid #0088FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.25s;
+    cursor: pointer;
+}
+#subNav div:nth-child(1) { border-right: 0.5vh solid #fff; }
+#subNav div:nth-child(2) { border-left: 0.5vh solid #fff; }
+#subNav .subNav.active h4 {
+    color: #fff;
+    cursor: default;
 }
 #subNav:has(:nth-child(1).active) {
     background-position-x: 50%;
