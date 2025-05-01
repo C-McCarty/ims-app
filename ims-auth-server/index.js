@@ -19,7 +19,8 @@ mongoose.connect(URL).then(() => {
 const SCHEMA_USER = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
     USER: String,
-    PASS: String
+    PASS: String,
+    URL: String
 });
 
 // Model
