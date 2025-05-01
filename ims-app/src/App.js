@@ -14,13 +14,16 @@ import { sha256 } from 'js-sha256';
 
 export default function App() {
     /* ---- Constants ---- */
-    const DB_URL = "https://tmcf-ims-app.onrender.com";
+    // const DB_URL = "https://tmcf-ims-app.onrender.com";
 
     /* ---- useState variables ---- */
 
     // Controls user authentication
     const [signedIn, toggleSignedIn] = useState(false);
     const [signInFail, toggleSignInFail] = useState(false);
+
+    // Stores Database URL
+    const [DB_URL, setDB_URL] = useState("");
 
     // Stores Product data from the database
     const [viewData, setViewData] = useState([]);
