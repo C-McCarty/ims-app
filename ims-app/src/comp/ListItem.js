@@ -68,7 +68,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                                             <div className="td">{p.name}</div>
                                             <div className="td">{p.countAllocated}</div>
                                             <div className="td">{p.countRemaining}</div>
-                                            <div className="td">{p.countAllocated - p.countRemaining}</div>
+                                            <div className="td">{(p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0)}</div>
                                         </div>
                                     );
                                 })}
