@@ -2,26 +2,53 @@ import { useState, useEffect } from "react";
 import Select from "react-select";
 import Report from "./Report";
 import axios from "axios";
+import Loading from "./Loading";
 
 export default function ReportMenu({ DB_URL }) {
     const [reportType, setReportType] = useState(-1);
     const handleTypeChange = option => {
+        setLoading(true);
         setReportType(option.value);
         setFromDate("");
         setToDate("");
-        setMarketName("");
+        setMarketNames([]);
+        setMarkName("");
     }
 
     const [fromDate, setFromDate] = useState("");
     const handleFromDateChange = e => setFromDate(e.target.value);
     const [toDate, setToDate] = useState("");
     const handleToDateChange = e => setToDate(e.target.value);
-    const [marketName, setMarketName] = useState("");
-    const handleMarketNameChange = e => setMarketName(e.target.value);
+    const [marketNames, setMarketNames] = useState([]);
+    const [markName, setMarkName] = useState("");
+    const handleMarketNameChange = option => {
+        setMarkName(option.value);
+    }
+
+    const [loading, setLoading] = useState(false);
 
     const [report, toggleReport] = useState(false);
 
     const [marketData, setMarketData] = useState([]);
+
+    useEffect(() => {
+        if (loading) {
+            if (reportType == 1) {
+                axios.get(`${DB_URL}/getMarkets`).then(res => {
+                    let list = res.data.map(m => (m.name));
+                    list = new Set(list);
+                    list = [...list];
+                    list = list.map(name => ({value: name, label: name}));
+                    list.sort((a, b) => a.value.localeCompare(b.value));
+                    setMarketNames(list);
+                }).catch(err => {
+                    console.error(err);
+                }).finally(() => setLoading(false));
+            } else {
+                setLoading(false);
+            }
+        }
+    }, [loading]);
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -47,14 +74,14 @@ export default function ReportMenu({ DB_URL }) {
                     </div>
                     <div>
                         <label htmlFor="toDate">To Date:</label>
-                        <input type="date" name="toDate" id="toDate" value={toDate} onChange={handleToDateChange} required />
+                        <input type="date" name="toDate" id="toDate" value={toDate} min={fromDate !== "" ? fromDate : null} onChange={handleToDateChange} required />
                     </div>
                 </>
                 // Report by Name
                 : reportType === 1 ?
                 <div>
                     <label htmlFor="marketName">Market Name:</label>
-                    <input type="text" name="marketName" id="marketName" value={marketName} onChange={handleMarketNameChange} required />
+                    <Select className="reportSelect" options={marketNames} value={{value: markName, label: markName}} onChange={handleMarketNameChange} required />
                 </div>
                 : null}
                 <div>
@@ -62,7 +89,7 @@ export default function ReportMenu({ DB_URL }) {
                 </div>
             </form>
             {report ? 
-                <Report type={reportType} data={marketData} query={reportType === 0 ? [fromDate, toDate] : marketName} toggleReport={toggleReport} />
+                <Report type={reportType} data={marketData} query={reportType === 0 ? [fromDate, toDate] : markName} toggleReport={toggleReport} />
             : null}
         </div>
     );
