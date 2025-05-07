@@ -1,20 +1,18 @@
 .signInForm {
-    max-height: 60vh;
-    width: 50vw;
+    max-height: 70%;
+    width: 50%;
     border-radius: 20px;
     padding: 5%;
-    padding-top: 0;
     display: flex;
     flex-direction: column;
     box-shadow: 0 5px 10px #0008;
     align-items: center;
-}
-.signInForm h2 {
-    font-size: 2rem;
-    text-align: center;
+    justify-content: space-between;
 }
 .signInForm div {
-    width: 50%;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
 }
 .signInForm label {
     font-size: 1.5rem;
@@ -24,17 +22,20 @@
     height: 2.5rem;
     padding: 0.5rem;
     margin-bottom: 1.5rem;
-    font-family: "Oxygen Mono", 'Courier New', Courier, monospace;
+    font-family: "Azeret Mono", 'Courier New', Courier, monospace;
     font-size: 1.5rem;
     border: 0.25rem solid #000;
     border-radius: 1rem;
 }
 .signInForm button {
-    width: 20%;
+    min-width: 20%;
 }
-.signInForm .error {
-    color: red;
+.signInForm h4, .signInForm h1 {
+    text-align: center;
+    margin: 0;
+    padding: 0;
 }
+.signInForm .error { color: red; }
 
 @media screen and (max-width: 500px) {
     .signInForm {

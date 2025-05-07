@@ -19,6 +19,9 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
     const [prodOptions, setProdOptions] = useState([]);
 
     // Market state
+    const [markNames, setMarkNames] = useState([]);
+    const [markOpt, setMarkOpt] = useState(null);
+    const handleMarkNameOptChange = option => setMarkOpt(option);
     const [markName, setMarkName] = useState("");
     const handleMarkNameChange = e => setMarkName(e.target.value);
     const [markDate, setMarkDate] = useState("");
@@ -68,7 +71,7 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
             });
         } else {
             axios.post(`${DB_URL}/addMarkets`, {
-                name: markName,
+                name: (markOpt.value == -1 ? markName : markOpt.value),
                 date: markDate,
                 products: markProds.map((p, i) => ({
                     _id: p.value,
@@ -110,7 +113,14 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                 setMarkProds(list);
             }).catch(err => {
                 console.error(err);
-            }).finally(() => setLoading(false));
+            }).finally(() => {
+                axios.get(`${DB_URL}/getMarkets`).then(results => {
+                    let markNameList = results.data.map(m => m.name);
+                    markNameList = new Set(markNameList);
+                    markNameList = [...markNameList].sort((a, b) => a.localeCompare(b)).map(name => ({value: name, label: name}));
+                    setMarkNames([...markNameList, {value: -1, label: "-- New Market --"}]);
+                }).finally(() => setLoading(false));
+            });
         }
     }, [addModal]);
 
@@ -177,8 +187,14 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                     <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
                         <div>
                             <label htmlFor="markName">Market Name:</label>
+                            <Select className="select" options={markNames} onChange={handleMarkNameOptChange} required />
+                        </div>
+                        {markOpt?.value == -1 ?
+                        <div>
+                            <label htmlFor="markName">New Market Name:</label>
                             <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />
                         </div>
+                        : null }
                         <div>
                             <label htmlFor="markDate">Date:</label>
                             <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />

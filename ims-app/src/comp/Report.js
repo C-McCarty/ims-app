@@ -12,7 +12,7 @@ export default function Report({type, data, query, toggleReport}) {
         if (type === 0) {
             const list = data.filter(x => {
                 const d = new Date(x.date).toISOString().split("T")[0];
-                return (d > query[0] && d < query[1]);
+                return (d >= query[0] && d <= query[1]);
             });
             setFilteredData(list);
             analyze(list);

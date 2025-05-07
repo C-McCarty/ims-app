@@ -3,7 +3,6 @@ import axios from 'axios';
 import './styles/App.css';
 import SignInForm from './comp/SignInForm';
 import Header from './comp/Header';
-import EditForm from './comp/EditForm';
 import Error404 from './comp/Error404';
 import Loading from './comp/Loading';
 import ListItem from './comp/ListItem';
@@ -261,7 +260,10 @@ export default function App() {
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
                     <main>
-                        <h1>View {collection}</h1>
+                        <div id="title">
+                            <h1>View {collection}</h1>
+                            <div id="refresh" className="icon" onClick={()=>{setRefresh(true)}}></div>
+                        </div>
                         {loading ? <Loading /> :
                         <div id='list'>
                             <div className='listItem' onClick={()=>{toggleAddModal(true)}}>
