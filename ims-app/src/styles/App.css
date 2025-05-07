@@ -1,3 +1,4 @@
+/* General */
 .App {
     display: flex;
     flex-wrap: wrap;
@@ -26,6 +27,12 @@ main > form {
     font-size: 2rem;
 }
 
+input {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
 button {
     padding: 1rem;
     padding-left: 2rem;
@@ -50,7 +57,7 @@ button:active {
 }
 
 
-
+/* Dashboard */
 #dashboard {
     display: flex;
     flex-direction: column;
@@ -161,7 +168,7 @@ button:active {
         opacity: 1;
     }
 }
-
+/* h1 + refresh button */
 #title {
     display: flex;
     justify-content: space-between;
@@ -184,7 +191,7 @@ button:active {
 #refresh:hover { transform: rotate(180deg); transition: all 0.5s; }
 
 #refresh:active { transform: rotate(180deg); transition: all 0.5s; }
-
+/* List item styling */
 #list {
     padding: 1vh;
     overflow-y: auto;
@@ -236,7 +243,7 @@ button:active {
 }
 .listItemDetails.hidden { max-height: 0vh; }
 .listItem:has(.add) { cursor: pointer; }
-/* Market Products Section */
+/* div table styling */
 .table {
     margin: 0;
     max-height: 18vh;
@@ -302,7 +309,7 @@ button:active {
     margin: 0;
     text-align: center;
 }
-
+/* Modal Styling */
 .modalWrap {
     position: fixed;
     z-index: 1000;
@@ -402,7 +409,7 @@ button:active {
     max-height: 8rem;
     width: 100%;
 }
-
+/* Banner Message Styling */
 .banner {
     position: fixed;
     top: 0vh;
@@ -461,33 +468,32 @@ button:active {
         top: -50vh;
     }
 }
-
-#reportMenu {
-    width: 100%;
-}
+/* Report Styling */
+#reportMenu { width: 50%; }
 #reportMenu form {
     padding: 1rem;
     display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
 }
 #reportMenu form > div {
     margin-bottom: 4rem;
     height: 4vh;
-    width: 70%;
+    width: max-content;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between;
 }
-#reportMenu form div label {
-    flex-basis: 70%;
-}
-#reportMenu .reportSelect {
-    flex-basis: 70%;
-}
+
+#reportMenu form div label { width: 100%; }
+
+#reportMenu .reportSelect { width: 100%; }
+
 #reportMenu form div > input {
     height: 2rem;
-    flex-basis: 70%;
+    width: 100%;
 }
 
 #reportWrap {
@@ -513,9 +519,9 @@ button:active {
     color: #000;
     font-weight: normal;
 }
-#report h2 {
-    width: 80%;
-}
+
+#report h2 { width: 80%; }
+
 #report .reportHeader {
     display: flex;
     width: 80%;
@@ -537,7 +543,7 @@ button:active {
     display: flex;
     justify-content: center;
 }
-
+/* Desktop Viewing */
 @media screen and (min-width: 700px) {
     .App { overflow: hidden; }
     header nav {flex-basis: 50vw;}
