@@ -154,7 +154,7 @@ export default function App() {
     useEffect(() => {
         if (page === 0) {
             axios.get(`${DB_URL}/getMarkets`).then(res => {
-                const prodSoldList = res.data.flatMap(m => m.products.map(p => ({ name: p.name, sold: p.countAllocated - p.countRemaining })));
+                const prodSoldList = res.data.flatMap(m => m.products.map(p => ({ name: p.name, sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0) })));
                 const prodTotals = [];
                 // Combine sold amount for each Product
                 for (const a of prodSoldList) {

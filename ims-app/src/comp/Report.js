@@ -27,7 +27,7 @@ export default function Report({type, data, query, toggleReport}) {
 
     const analyze = (data) => {
         // Get Product names and how much was sold
-        const prodSoldList = data.flatMap(m => m.products.map(p => ({ name: p.name, sold: p.countAllocated - p.countRemaining, marketName: m.name, date: m.date })));
+        const prodSoldList = data.flatMap(m => m.products.map(p => ({ name: p.name, sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0), marketName: m.name, date: m.date })));
         setMarkProdData(prodSoldList);
         const prodTotals = [];
         // Combine sold amount for each Product
