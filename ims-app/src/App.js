@@ -12,8 +12,6 @@ import ReportMenu from './comp/ReportMenu';
 import { sha256 } from 'js-sha256';
 
 export default function App() {
-    /* ---- Constants ---- */
-
     /* ---- useState variables ---- */
 
     // Controls user authentication
@@ -49,7 +47,9 @@ export default function App() {
     /* 3 = Reports */
     const [page, setPage] = useState(-1);
 
+    // Best selling Products
     const [bestSellers, setBestSellers] = useState([]);
+    // Recent Markets
     const [recentMarkets, setRecentMarkets] = useState([]);
 
     /* ---- useEffect functions ---- */
@@ -132,6 +132,7 @@ export default function App() {
 
     // Handle user authentication
     const handleSignIn = (DB, PWD) => {
+        // Send hashed passwords to backend for authentication. Avoids injection attack
         axios.post(`https://ims-auth.onrender.com/authenticate`, {
             USER: sha256(DB),
             PASS: sha256(PWD)
@@ -142,8 +143,9 @@ export default function App() {
                 toggleSignInFail(true);
                 setLoading(false);
             }
-        });
+        }).catch(err => console.error(err));
     }
+    // Show Dashboard once the database URL has loaded
     useEffect(() => {
         if (DB_URL.length > 0) {
             toggleSignedIn(true);

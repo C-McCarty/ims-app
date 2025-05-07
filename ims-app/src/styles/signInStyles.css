@@ -49,10 +49,7 @@
         display: flex;
         flex-wrap: wrap;
     }
-    .signInForm input {
-        flex-grow: 1;
-    }
-    .signInForm button {
-        width: unset;
-    }
+    .signInForm input { flex-grow: 1; }
+    
+    .signInForm button { width: unset; }
 }
