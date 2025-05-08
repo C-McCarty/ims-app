@@ -1,3 +1,7 @@
+The application is deployed at https://ims-app-g3ep.onrender.com
+Database: test
+Password: test
+
 Sources I used for support
 
 General:
