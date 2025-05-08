@@ -82,7 +82,18 @@ export default function App() {
             if (page == 2) {
                 setLoading(true);
                 axios.get(`${DB_URL}/get${collection}`).then(response => {
-                    response.data.sort((a, b) => a.name.localeCompare(b.name));
+                    if (collection === "Products") {
+                        response.data.sort((a, b) => a.name.localeCompare(b.name));
+                    } else {
+                        response.data.sort((a, b) => {
+                            const D1 = new Date(a.date);
+                            const D2 = new Date(b.date);
+                            if (D1 === D2) {
+                                return a.name.localeCompare(b.name);
+                            }
+                            return D2 - D1;
+                        });
+                    }
                     setViewData(response.data);
                 });
                 setRefresh(false);
