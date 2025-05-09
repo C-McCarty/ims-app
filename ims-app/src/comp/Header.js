@@ -5,12 +5,12 @@ export default function Header({nav=false, toggleSignedIn, setPage, setCollectio
     const [activeNav, toggleActiveNav] = useState(1);
     const [activeSubNav, toggleActiveSubNav] = useState(0);
 
+    // x = page, y = collection
     const handleClick = (x, y) => {
         setPage(x);
         setCollection(y);
         toggleActiveSubNav(0);
     }
-
 
     if (nav) {
         return (

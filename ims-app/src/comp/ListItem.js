@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EditForm from "./EditForm";
 
 export default function ListItem({collection, DB_URL, name, category=null, taxable=null, count=null, date=null, products=null, _id, setRefresh, banner, setBanner}) {

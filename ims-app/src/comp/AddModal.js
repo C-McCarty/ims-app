@@ -5,6 +5,14 @@ import Select from "react-select";
 import TR from "./TR";
 
 export default function AddModal({ toggleAddModal, addModal, collection, DB_URL, setRefresh, banner, setBanner }) {
+    // Constants
+    const NEW_FLAG = -1;
+    // Maximum product allowed to be allocated to a market
+    const MAX_VAL = 999;
+    
+    // State variables
+    const [loading, setLoading] = useState(true);
+
     // Product state
     const [prodName, setProdName] = useState("");
     const handleProdNameChange = e => setProdName(e.target.value);
@@ -30,9 +38,10 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
     const [markProds, setMarkProds] = useState([]);
     const handleMarkProdsChange = options => setMarkProds(options || []);
 
-    // Maximum product allowed to be allocated to a market
-    const MAX_VAL = 999;
+    // Stores the amount of each Product allocated for the Market
     const [productCountAllocated, setProductCountAllocated] = useState([]);
+
+    // Handlers
     const handleProductCountAllocatedChange = (e, i) => {
         const newList = [...productCountAllocated];
         const val = Math.floor(e.target.value);
@@ -45,15 +54,13 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
         }
         setProductCountAllocated(newList);
     };
-
-    const [loading, setLoading] = useState(true);
-
     const handleSubmit = e => {
         e.preventDefault();
         if (collection === "Products") {
+            // Submit Product data
             axios.post(`${DB_URL}/addProducts`, {
                 name: prodName,
-                category: (prodCategoryOption === -1 ? prodNewCategory : prodCategoryOption),
+                category: (prodCategoryOption === NEW_FLAG ? prodNewCategory : prodCategoryOption),
                 isTaxable: prodIsTaxable === 1,
                 count: prodCount
             }).then(() => {
@@ -70,8 +77,9 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                 setBanner([true, 2, "An error occurred while trying to add your product. Please try again later."]);
             });
         } else {
+            // Submit Market data
             axios.post(`${DB_URL}/addMarkets`, {
-                name: (markOpt.value == -1 ? markName : markOpt.value),
+                name: (markOpt.value === NEW_FLAG ? markName : markOpt.value),
                 date: markDate,
                 products: markProds.map((p, i) => ({
                     _id: p.value,
@@ -92,46 +100,6 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
             });
         }
     };
-
-    useEffect(() => {
-        if (collection === "Products") {
-            setLoading(true);
-            axios.get(`${DB_URL}/getProducts`).then(res => {
-                let list = res.data.map(item => ({ value: item.category, label: item.category }));
-                list.push({ value: -1, label: "-- New Category --" });
-                list = list.filter((a, i, self) => i === self.findIndex(b => b.value === a.value));
-                setProdOptions([...list]);
-            }).catch(err => {
-                console.error(err);
-            }).finally(() => setLoading(false));
-        }
-        if (collection === "Markets") {
-            setLoading(true);
-            axios.get(`${DB_URL}/getProducts`).then(res => {
-                const list = res.data.map(item => ({ value: item._id, label: item.name }));
-                setMarkProdOptions(list);
-                setMarkProds(list);
-            }).catch(err => {
-                console.error(err);
-            }).finally(() => {
-                axios.get(`${DB_URL}/getMarkets`).then(results => {
-                    let markNameList = results.data.map(m => m.name);
-                    markNameList = new Set(markNameList);
-                    markNameList = [...markNameList].sort((a, b) => a.localeCompare(b)).map(name => ({value: name, label: name}));
-                    setMarkNames([...markNameList, {value: -1, label: "-- New Market --"}]);
-                }).finally(() => setLoading(false));
-            });
-        }
-    }, [addModal]);
-
-    useEffect(() => {
-        setProductCountAllocated(prev => {
-            const arr = [...prev];
-            while (arr.length < markProds.length) arr.push(0);
-            return arr.slice(0, markProds.length);
-        });
-    }, [markProds]);
-
     const handleClose = () => {
         setProdName("");
         setProdCategoryOption("");
@@ -144,8 +112,60 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
         toggleAddModal(false);
     };
 
-    if (!addModal) return null;
+    // useEffect methods
+    // Get existing metadata
+    useEffect(() => {
+        if (collection === "Products") {
+            setLoading(true);
+            // Get content for existing Product categories
+            axios.get(`${DB_URL}/getProducts`).then(res => {
+                // Filter out duplicates and sort alphabetically
+                let list = res.data.map(item => (item.category));
+                list = new Set(list);
+                list = [...list].sort((a, b) => a.localeCompare(b)).map(c => ({value: c, label: c}));
+                setProdOptions([...list, { value: -1, label: "-- New Category --" }]);
+            }).catch(err => {
+                console.error(err);
+            }).finally(() => setLoading(false));
+        }
+        if (collection === "Markets") {
+            setLoading(true);
+            // Get content for Product list
+            axios.get(`${DB_URL}/getProducts`).then(res => {
+                // Get Product list
+                const list = res.data.map(item => ({ value: item._id, label: item.name }));
+                setMarkProdOptions(list);
+                setMarkProds(list);
+            }).catch(err => {
+                console.error(err);
+            }).finally(() => {
+                // Get content for existing Market names
+                axios.get(`${DB_URL}/getMarkets`).then(results => {
+                    // Filter out duplicates and sort alphabetically
+                    let markNameList = results.data.map(m => m.name);
+                    markNameList = new Set(markNameList);
+                    markNameList = [...markNameList].sort((a, b) => a.localeCompare(b)).map(name => ({value: name, label: name}));
+                    setMarkNames([...markNameList, {value: -1, label: "-- New Market --"}]);
+                }).catch(err => {
+                    console.error(err);
+                }).finally(() => setLoading(false));
+            });
+        }
+    }, [addModal]);
+    // Pad prodCountAllocated array with 0s when it is shorter than the amount of market products
+    useEffect(() => {
+        setProductCountAllocated(prev => {
+            const list = [...prev];
+            while (list.length < markProds.length) {
+                list.push(0);
+            }
+            return list.slice(0, markProds.length);
+        });
+    }, [markProds]);
 
+    // If the AddModal is inactive it will not display
+    if (!addModal) return null;
+    
     return (
         <div id="addModalWrap" className="modalWrap">
             <div id="addModal" className="modal">
@@ -166,11 +186,12 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                                 <Select className="select" options={prodOptions} onChange={handleCategoryChange} required />
                             }
                         </div>
-                        {prodCategoryOption === -1 &&
+                        {prodCategoryOption === NEW_FLAG ?
                             <div>
                                 <label htmlFor="prodNewCategory">New Category:</label>
                                 <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
-                            </div>}
+                            </div>
+                        : null}
                         <div>
                             <label htmlFor="prodTaxable">Taxable?</label>
                             <Select className="select" options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]} onChange={handleProdIsTaxableChange} required />
@@ -189,7 +210,7 @@ export default function AddModal({ toggleAddModal, addModal, collection, DB_URL,
                             <label htmlFor="markName">Market Name:</label>
                             <Select className="select" options={markNames} onChange={handleMarkNameOptChange} required />
                         </div>
-                        {markOpt?.value == -1 ?
+                        {markOpt?.value === NEW_FLAG ?
                         <div>
                             <label htmlFor="markName">New Market Name:</label>
                             <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />

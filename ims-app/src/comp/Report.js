@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import Loading from "./Loading";
 
 export default function Report({type, data, query, toggleReport}) {
+    // State variables
     const [loading, setLoading] = useState(true);
     const [filteredData, setFilteredData] = useState([]);
     const [bestSellers, setBestSellers] = useState("");
     const [markProdTable, setMarkProdTable] = useState(<></>);
     const [markProdData, setMarkProdData] = useState([]);
+
+    // useEffect
     useEffect(() => {
         // Search by Date
         if (type === 0) {
@@ -24,17 +27,23 @@ export default function Report({type, data, query, toggleReport}) {
             analyze(list);
         }
     }, []);
+    useEffect(() => setLoading(false), [type, data]);
 
     const analyze = (data) => {
         // Get Product names and how much was sold
-        const prodSoldList = data.flatMap(m => m.products.map(p => ({ name: p.name, sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0), marketName: m.name, date: m.date })));
+        const prodSoldList = data.flatMap(m => m.products.map(p => ({
+            name: p.name,
+            sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0),
+            marketName: m.name,
+            date: m.date
+        })));
         setMarkProdData(prodSoldList);
         const prodTotals = [];
         // Combine sold amount for each Product
-        for (const a of prodSoldList) {
-            const prod = prodTotals.find(b => a.name === b.name);
-            if (prod) { prod.sold += a.sold; }
-            else { prodTotals.push({...a}); }
+        for (let i = 0; i < prodSoldList.length; i++) {
+            const prod = prodTotals.find(b => prodSoldList[i].name === b.name);
+            if (prod) { prod.sold += prodSoldList[i].sold; }
+            else { prodTotals.push({...prodSoldList[i]}); }
         }
         // Sort by most sold then by name
         prodTotals.sort((a, b) => {
@@ -104,10 +113,6 @@ export default function Report({type, data, query, toggleReport}) {
         document.body.removeChild(CSV_LINK);
         URL.revokeObjectURL(CSV_URL);
     }
-
-    useEffect(() => {
-        setLoading(false);
-    }, [type, data])
 
     return (
         <div id="reportWrap">

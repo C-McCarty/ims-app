@@ -56,14 +56,17 @@ export default function App() {
 
     // Get Products or Markets that have not been soft deleted
     useEffect(() => {
-        if (page == 2) {
+        if (page === 2) {
             setLoading(true);
             // Credit for help: https://www.freecodecamp.org/news/how-to-use-axios-with-react/
-            axios.get(`${DB_URL}/get${collection}`).then(response => {
+            axios.get(`${DB_URL}/get${collection}`).then(res => {
+                // Sort Products alphabetically
                 if (collection === "Products") {
-                    response.data.sort((a, b) => a.name.localeCompare(b.name));
-                } else {
-                    response.data.sort((a, b) => {
+                    res.data.sort((a, b) => a.name.localeCompare(b.name));
+                }
+                // Sort Markets by date then alphabetically
+                else {
+                    res.data.sort((a, b) => {
                         const D1 = new Date(a.date);
                         const D2 = new Date(b.date);
                         if (D1 === D2) {
@@ -72,14 +75,16 @@ export default function App() {
                         return D2 - D1;
                     });
                 }
-                setViewData(response.data);
-            });
+                setViewData(res.data);
+            }).catch(err => {
+                console.error(err);
+            }).finally(() => setLoading(false));
         }
     }, [page, collection]);
     // Same as above except it only fires when the page has been refreshed
     useEffect(() => {
         if (refresh) {
-            if (page == 2) {
+            if (page === 2) {
                 setLoading(true);
                 axios.get(`${DB_URL}/get${collection}`).then(response => {
                     if (collection === "Products") {
@@ -95,7 +100,9 @@ export default function App() {
                         });
                     }
                     setViewData(response.data);
-                });
+                }).catch(err => {
+                    console.error(err);
+                }).finally(() => setLoading(false));
                 setRefresh(false);
             }
         }
@@ -126,7 +133,7 @@ export default function App() {
     }, [viewData, page]);
     // Turn off the loading screen once the viewItems list has propagated
     useEffect(() => {
-        if (viewItems.length > 0 && viewItems.length == viewData.length) {
+        if (viewItems.length > 0 && viewItems.length === viewData.length) {
             setLoading(false);
         }
     }, [viewItems]);
@@ -152,9 +159,12 @@ export default function App() {
                 setDB_URL(res.data.URL);
             } else {
                 toggleSignInFail(true);
-                setLoading(false);
             }
-        }).catch(err => console.error(err));
+        }).catch(err => {
+            console.error(err);
+        }).finally(() => {
+            setLoading(false);
+        });
     }
     // Show Dashboard once the database URL has loaded
     useEffect(() => {
@@ -164,16 +174,18 @@ export default function App() {
             setCollection("Dashboard");
         }
     }, [DB_URL]);
+    // Get Market data for display on the Dashboard
     useEffect(() => {
         if (page === 0) {
+            setLoading(true);
             axios.get(`${DB_URL}/getMarkets`).then(res => {
                 const prodSoldList = res.data.flatMap(m => m.products.map(p => ({ name: p.name, sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0) })));
                 const prodTotals = [];
                 // Combine sold amount for each Product
-                for (const a of prodSoldList) {
-                    const prod = prodTotals.find(b => a.name === b.name);
-                    if (prod) { prod.sold += a.sold; }
-                    else { prodTotals.push({...a}); }
+                for (let i = 0; i < prodSoldList.length; i++) {
+                    const prod = prodTotals.find(item => prodSoldList[i].name === item.name);
+                    if (prod) { prod.sold += prodSoldList[i].sold; }
+                    else { prodTotals.push({...prodSoldList[i]}); }
                 }
                 // Sort by most sold then by name
                 prodTotals.sort((a, b) => {
@@ -210,14 +222,16 @@ export default function App() {
                         </div>
                     );
                 }));
-            });
+            }).catch(err => {
+                console.error(err);
+            }).finally(() => setLoading(false));
         }
     }, [page]);
 
     // User has signed in
     if (signedIn) {
         // 0 | Dashboard
-        if (page == 0) {
+        if (page === 0) {
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
@@ -226,28 +240,32 @@ export default function App() {
                         <div id="settings" onClick={()=>{toggleModalOpen(true)}}></div>
                         <div id="dashboard">
                             <div className="widget">
-                                <h3>Recent Markets</h3>
-                                <div className="table two">
-                                    <div className="thead tr">
-                                        <div className="th">Name</div>
-                                        <div className="th">Date</div>
+                                {loading ? <Loading /> : <>
+                                    <h3>Recent Markets</h3>
+                                    <div className="table two">
+                                        <div className="thead tr">
+                                            <div className="th">Name</div>
+                                            <div className="th">Date</div>
+                                        </div>
+                                        <div className="tbody">
+                                            {recentMarkets}
+                                        </div>
                                     </div>
-                                    <div className="tbody">
-                                        {recentMarkets}
-                                    </div>
-                                </div>
+                                </>}
                             </div>
                             <div className="widget">
-                                <h3>Top Products (All Time)</h3>
-                                <div className="table two">
-                                    <div className="thead tr">
-                                        <div className="th">Name</div>
-                                        <div className="th">Sold</div>
+                                {loading ? <Loading /> : <>
+                                    <h3>Top Products (All Time)</h3>
+                                    <div className="table two">
+                                        <div className="thead tr">
+                                            <div className="th">Name</div>
+                                            <div className="th">Sold</div>
+                                        </div>
+                                        <div className="tbody">
+                                            {bestSellers}
+                                        </div>
                                     </div>
-                                    <div className="tbody">
-                                        {bestSellers}
-                                    </div>
-                                </div>
+                                </>}
                             </div>
                         </div>
                     </main>
@@ -268,7 +286,7 @@ export default function App() {
             );
         }
         // 2 | List
-        else if (page == 2) {
+        else if (page === 2) {
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
@@ -293,7 +311,7 @@ export default function App() {
             );
         }
         // 3 | Reports
-        else if (page == 3) {
+        else if (page === 3) {
             return (
                 <div className="App">
                     <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} />
