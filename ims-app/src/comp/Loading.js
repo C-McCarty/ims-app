@@ -3,6 +3,7 @@ import s from "../styles/loadingStyles.module.css";
 
 export default function Loading() {
     const [loadingText, setLoadingText] = useState("Loading");
+    // Loading text animation
     useEffect(() => {
         const loadingAnimation = setInterval(() => {
             setLoadingText((prevText) => {

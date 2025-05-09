@@ -5,7 +5,8 @@ import ConfirmationModal from "./ConfirmationModal";
 import Select from "react-select";
 
 export default function EditForm({collection, DB_URL, name=null, category=null, taxable=null, count=null, date=null, products=null, editForm, toggleEditForm, _id, setRefresh, banner, setBanner}) {
-    const NEW_CATEGORY_FLAG = -1;
+    // Constants
+    const NEW_FLAG = -1;
     const MAX_VAL = 999; // For market allocation/remaining
     
     const [loading, setLoading] = useState(true);
@@ -20,36 +21,37 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
     const handleProdIsTaxableChange = option => setProdIsTaxable(option);
     const [prodCount, setProdCount] = useState((count != null ? count : 0));
     const handleProdCountChange = e => setProdCount(e.target.value);
-    const [prodOptionData, setProdOptionData] = useState([]);
     const [prodOptions, setProdOptions] = useState([]);
-
+    
     // Control input data for Markets
     const [markName, setMarkName] = useState((collection == "Markets" ? name : ""));
     const handleMarkNameChange = e => setMarkName(e.target.value);
     const [markDate, setMarkDate] = useState((collection == "Markets" ? date : ""));
     const handleMarkDateChange = e => setMarkDate(e.target.value);
-    
+    const [markProdListOptions, setMarkProdListOptions] = useState([]);
     // List of products at the market
     const [markProdList, setMarkProdList] = useState((products != null ? products.map(p => {return {value: p._id, label: p.name}}) : []));
-    // handles changes to the Select
-    const handleUpdateMarkProdList = (options) => {
-        setMarkProdList(options);
-        setProductCountAllocated(options.map((opt, i) => {
-          const existing = markProdList.findIndex(p => p.value === opt.value);
-          return existing !== -1 ? productCountAllocated[existing] : 0;
-        }));
-        setProductCountRemaining(options.map((opt, i) => {
-          const existing = markProdList.findIndex(p => p.value === opt.value);
-          return existing !== -1 ? productCountRemaining[existing] : 0;
-        }));
-      };
-      
-    const [markProdListOptions, setMarkProdListOptions] = useState([]);
-    // Updates the Market Product table
-    const [markProds, setMarkProds] = useState([]);
+    
+    const [productCountRemaining, setProductCountRemaining] = useState([]);
+    const [confirmModal, toggleConfirmModal] = useState(false);
 
     // Array to handle controls from dynamic Product inputs
     const [productCountAllocated, setProductCountAllocated] = useState([]);
+    
+    // Handles changes to the Select
+    const handleUpdateMarkProdList = (options) => {
+        setMarkProdList(options);
+        setProductCountAllocated(options.map((opt) => {
+            const i = markProdList.findIndex(p => p.value === opt.value);
+            return i !== NEW_FLAG ? productCountAllocated[i] : 0;
+        }));
+        setProductCountRemaining(options.map((opt) => {
+            const i = markProdList.findIndex(p => p.value === opt.value);
+            return i !== NEW_FLAG ? productCountRemaining[i] : 0;
+        }));
+      };
+      
+    // Handlers for prodCountAllocated and prodCountRemaining
     const handleProductCountAllocatedChange = (e, i) => setProductCountAllocated(list => {
         const newList = [...list];
         const val = Math.floor(e.target.value);
@@ -74,10 +76,7 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
         }
         return newList;
     });
-    const [productCountRemaining, setProductCountRemaining] = useState([]);
     
-    const [confirmModal, toggleConfirmModal] = useState(false);
-
     // Update the counts of individual Products for a Market when the EditForm loads
     useEffect(() => {
         if (collection === "Markets" && editForm && products?.length > 0) {
@@ -97,7 +96,7 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
             setLoading(true);
             axios.get(`${DB_URL}/getProducts`).then(res => {
                 let list = res.data.map(item => ({ value: item.category, label: item.category }));
-                list.push({ value: NEW_CATEGORY_FLAG, label: "-- New Category --" });
+                list.push({ value: NEW_FLAG, label: "-- New Category --" });
                 list = list.filter((a, i, self) => i === self.findIndex(b => b.value === a.value));
                 setProdOptions([...list]);
             }).catch(err => {
@@ -115,10 +114,6 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
         }
     }, [editForm]);
 
-    useEffect(() => {
-        setLoading(false);
-    }, [markProds]);
-
     // Handle Submit: Update Product or Market
     const handleSubmit = e => {
         e.preventDefault();
@@ -126,16 +121,17 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
             axios.put(`${DB_URL}/updateProducts`, {
                 _id: _id,
                 name: prodName,
-                category: (prodCategoryOption == NEW_CATEGORY_FLAG ? prodNewCategory : prodCategoryOption),
+                category: (prodCategoryOption == NEW_FLAG ? prodNewCategory : prodCategoryOption),
                 isTaxable: (prodIsTaxable == 1 ? true : false),
                 count: prodCount
             }).then(() => {
                 setBanner([true, 0, "Product updated successfully!"]);
-                toggleEditForm(false);
-                setRefresh(true);
             }).catch(err => {
                 console.error(err);
                 setBanner([true, 2, "An error occurred while trying to update your product. Please try again later."]);
+            }).finally(() => {
+                toggleEditForm(false);
+                setRefresh(true);
             });
         } else {
             axios.put(`${DB_URL}/updateMarkets`, {
@@ -150,11 +146,12 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                 }))
             }).then(() => {
                 setBanner([true, 0, "Market updated successfully!"]);
-                toggleEditForm(false);
-                setRefresh(true);
             }).catch(err => {
                 console.error(err);
                 setBanner([true, 2, "An error occurred while trying to update your market. Please try again later."]);
+            }).finally(() => {
+                toggleEditForm(false);
+                setRefresh(true);
             });
         }
     }
@@ -163,23 +160,25 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
         if (collection === "Products") {
             axios.put(`${DB_URL}/deleteProduct`, { _id }).then(() => {
                 setBanner([true, 1, `Product "${name}" was successfully deleted.`]);
-                toggleEditForm(false);
-                toggleConfirmModal(false);
-                setRefresh(true);
             }).catch(err => {
                 console.error(err);
                 setBanner([true, 2, "An error occurred while trying to delete your product. Please try again later."]);
+            }).finally(() => {
+                toggleEditForm(false);
+                toggleConfirmModal(false);
+                setRefresh(true);
             });
         } else if (collection === "Markets") {
             console.log(_id, name)
             axios.put(`${DB_URL}/deleteMarket`, { _id }).then(() => {
                 setBanner([true, 1, `Market "${name}" was successfully deleted.`]);
-                toggleEditForm(false);
-                toggleConfirmModal(false);
-                setRefresh(true);
             }).catch(err => {
                 console.error(err);
                 setBanner([true, 2, "An error occurred while trying to delete your market. Please try again later."]);
+            }).finally(() => {
+                toggleEditForm(false);
+                toggleConfirmModal(false);
+                setRefresh(true);
             });
         }
     }
@@ -206,7 +205,7 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                                     <Select className="select" options={prodOptions} onChange={handleProdCategoryChange} value={{value: category, label: category}} required />
                                 }
                             </div>
-                            {prodCategoryOption === NEW_CATEGORY_FLAG ?
+                            {prodCategoryOption === NEW_FLAG ?
                                 <div>
                                     <label htmlFor="prodNewCategory">New Category:</label>
                                     <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />

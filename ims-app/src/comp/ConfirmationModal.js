@@ -1,11 +1,8 @@
 import { useState } from "react";
 
 export default function ConfirmationModal({name, confirmModal, toggleConfirmModal, handleDelete, market=false}) {
-    const handleCancel = () => {
-        toggleConfirmModal(false);
-    }
+    const handleCancel = () => toggleConfirmModal(false);
     if (confirmModal) {
-
         return (
             <div className="modalWrap">
                 <div className="modal">

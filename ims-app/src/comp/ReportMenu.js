@@ -5,7 +5,21 @@ import axios from "axios";
 import Loading from "./Loading";
 
 export default function ReportMenu({ DB_URL }) {
+    // State variables
     const [reportType, setReportType] = useState(-1);
+    const [loading, setLoading] = useState(false);
+    const [report, toggleReport] = useState(false);
+    const [marketData, setMarketData] = useState([]);
+    
+    const [fromDate, setFromDate] = useState("");
+    const handleFromDateChange = e => setFromDate(e.target.value);
+    const [toDate, setToDate] = useState("");
+    const handleToDateChange = e => setToDate(e.target.value);
+    const [marketNames, setMarketNames] = useState([]);
+    const [markName, setMarkName] = useState("");
+    const handleMarketNameChange = option => setMarkName(option.value);
+    
+    // Handlers
     const handleTypeChange = option => {
         setLoading(true);
         setReportType(option.value);
@@ -14,23 +28,17 @@ export default function ReportMenu({ DB_URL }) {
         setMarketNames([]);
         setMarkName("");
     }
-
-    const [fromDate, setFromDate] = useState("");
-    const handleFromDateChange = e => setFromDate(e.target.value);
-    const [toDate, setToDate] = useState("");
-    const handleToDateChange = e => setToDate(e.target.value);
-    const [marketNames, setMarketNames] = useState([]);
-    const [markName, setMarkName] = useState("");
-    const handleMarketNameChange = option => {
-        setMarkName(option.value);
+    const handleSubmit = e => {
+        e.preventDefault();
+        axios.get(`${DB_URL}/getMarkets`).then(res => {
+            setMarketData(res.data);
+            toggleReport(true);
+        }).catch(err => {
+            console.error(err);
+        });
     }
 
-    const [loading, setLoading] = useState(false);
-
-    const [report, toggleReport] = useState(false);
-
-    const [marketData, setMarketData] = useState([]);
-
+    // useEffect methods
     useEffect(() => {
         if (loading) {
             if (reportType == 1) {
@@ -50,14 +58,6 @@ export default function ReportMenu({ DB_URL }) {
         }
     }, [loading]);
 
-    const handleSubmit = e => {
-        e.preventDefault();
-        axios.get(`${DB_URL}/getMarkets`).then(res => {
-            setMarketData(res.data);
-            toggleReport(true);
-        });
-    }
-
     return (
         <div id="reportMenu">
             <form className="reportForm" onSubmit={handleSubmit}>
@@ -76,13 +76,12 @@ export default function ReportMenu({ DB_URL }) {
                         <label htmlFor="toDate">To Date:</label>
                         <input type="date" name="toDate" id="toDate" value={toDate} min={fromDate !== "" ? fromDate : null} onChange={handleToDateChange} required />
                     </div>
-                </>
-                // Report by Name
-                : reportType === 1 ?
-                <div>
-                    <label htmlFor="marketName">Market Name:</label>
-                    <Select className="reportSelect" options={marketNames} value={{value: markName, label: markName}} onChange={handleMarketNameChange} required />
-                </div>
+                {/* Report by Name */}
+                </> : reportType === 1 ?
+                    <div>
+                        <label htmlFor="marketName">Market Name:</label>
+                        <Select className="reportSelect" options={marketNames} value={{value: markName, label: markName}} onChange={handleMarketNameChange} required />
+                    </div>
                 : null}
                 <div>
                     <button type="submit">Generate</button>
