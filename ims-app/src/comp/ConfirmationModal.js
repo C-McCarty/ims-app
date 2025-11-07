@@ -16,5 +16,5 @@ export default function ConfirmationModal({name, confirmModal, toggleConfirmModa
                 </div>
             </div>
         );
-    }
+    } else return null;
 }

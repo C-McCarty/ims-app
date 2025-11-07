@@ -1,3 +1,6 @@
+:root {
+    --main: #08F;
+}
 /* General */
 .App {
     display: flex;
@@ -12,7 +15,7 @@
 main {
     width: 100vw;
     height: 90vh;
-    background-color: #fff;
+    background-color: #FFF;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -22,7 +25,7 @@ main > form {
 }
 
 .manageFormSelect {
-    color: #0088FF;
+    color: var(--main);
     font-weight: bold;
     font-size: 2rem;
 }
@@ -32,7 +35,13 @@ input {
     border-radius: 5px;
     border: 1px solid #ccc;
 }
-
+.btnGroup {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
 button {
     padding: 1rem;
     padding-left: 2rem;
@@ -40,20 +49,17 @@ button {
     font-size: 1rem;
     border-radius: 3rem;
     height: 5rem;
-    border: 0.25rem solid #0088FF;
+    border: 0.25rem solid var(--main);
     background-color: transparent;
-    color: #0088FF;
+    color: var(--main);
     font-weight: bold;
     cursor: pointer;
     user-select: none;
     transition: all 0.125s;
 }
-button:hover {
-    background-color: #0002;
-}
 button:active {
     color: #fff;
-    background-color: #0088FF;
+    background-color: var(--main);
 }
 
 
@@ -121,18 +127,13 @@ button:active {
     right: 1vh;
     height: 8vh;
     width: 8vh;
+    padding: 0;
     cursor: pointer;
-}
-.closeBtn div {
-    background-color: #0088FF;
-    width: 1vh;
-    height: 8vh;
-    position: absolute;
-    left: 3.5vh;
-    transform: rotate(45deg);
-}
-.closeBtn div:nth-child(2) {
-    transform: rotate(135deg);
+    background-image: url(../media/close.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    border: none;
 }
 
 #modal h2, #modal h3 {
@@ -147,7 +148,7 @@ button:active {
     background-repeat: no-repeat;
     background-size: 80%;
     background-position: center;
-    background-color: #0088FF;
+    background-color: var(--main);
     border-radius: 100%;
     cursor: pointer;
 }
@@ -310,7 +311,7 @@ button:active {
     text-align: center;
 }
 /* Modal Styling */
-.modalWrap {
+/* .modalWrap {
     position: fixed;
     z-index: 1000;
     top: 0;
@@ -349,7 +350,7 @@ button:active {
 .popupForm label {
     flex-basis: 100%;
     padding: 0.5rem;
-    color: #0088FF;
+    color: var(--main);
     font-weight: bold;
     font-size: 1.25rem;
 }
@@ -408,7 +409,7 @@ button:active {
 .modal .popupForm .table {
     max-height: 8rem;
     width: 100%;
-}
+} */
 /* Banner Message Styling */
 .banner {
     position: fixed;
@@ -556,9 +557,179 @@ button:active {
         width: 30%;
     }
     .listItem { width: 90%; }
-    .modal { width: 50%; }
-    .popupForm > div { width: 100%; }
-    .modal .half { width: 100%; }
     #dashboard { align-items: center; }
     .widget { width: 30%; }
+}
+
+
+
+
+
+
+
+
+
+
+
+.modalWrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+.modal {
+    padding: 1rem;
+    flex-grow: 1;
+}
+.modal .half {
+    display: flex;
+    justify-content: space-between;
+}
+#editModal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#editForm {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.formInputRow {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 10%;
+}
+#editForm :nth-child(3) {
+    display: flex;
+    justify-content: center;
+    flex-basis: 30%;
+}
+#editForm > .half {
+    flex-basis: 20%;
+}
+#editForm label,
+#editForm input {
+    font-size: 1.5rem;
+}
+
+.productManagementModal {
+    padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #FFF;
+}
+.productManagementCloseBtn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3000;
+    padding: 0;
+    width: 3rem;
+    height: 3rem;
+    user-select: none;
+    background-image: url(../media/close.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    border: none;
+}
+#editForm .addProductSection {
+    height: 20vh;
+}
+.addProductSelectWrap {
+    display: flex;
+    flex-direction: column;
+}
+#editForm .productListWrap {
+    height: 60vh;
+    overflow-y: scroll;
+}
+#editForm .modalButtonsRow {
+    display: flex;
+    justify-content: space-around;
+    height: 11vh;
+}
+#editForm .productList {
+    list-style-type: none;
+    padding: 0;
+    padding-top: 1rem;
+    height: 80vh;
+    overflow-x: hidden;
+}
+.productListHeader {
+    display: flex;
+    position: sticky;
+    top: 0;
+    background-color: #FFF;
+    text-align: center;
+}
+.productListItem {
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.25s;
+}
+.productName {
+    flex-basis: 60%;
+}
+.productListItem div:has(input) {
+    display: flex;
+    justify-content: center;
+}
+.productListItem input {
+    width: 90%;
+    height: 2rem;
+    text-align: center;
+}
+.productCountAllocated {
+    flex-basis: 20%;
+}
+.productCountRemaining {
+    flex-basis: 20%;
+}
+.productRemove {
+    flex-basis: 5rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.productRemoveBtn {
+    border: 2px solid #000;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    background-image: url(../media/close.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 80%;
+    user-select: none;
+    border-color: red;
+}
+.productRemoveBtn:active {
+    background-color: transparent;
+}
+.productListItem.removed {
+    opacity: 50%;
+    color: red;
+}
+.productListItem.removed .productName {
+    text-decoration: line-through;
+}
+.productRemoveBtn.undo {
+    transform: rotate(135deg);
+    border-color: green;
 }

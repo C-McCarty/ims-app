@@ -1,219 +1,215 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Loading from "./Loading";
 import ConfirmationModal from "./ConfirmationModal";
 import Select from "react-select";
 
-export default function EditForm({collection, DB_URL, name=null, category=null, taxable=null, count=null, date=null, products=null, editForm, toggleEditForm, _id, setRefresh, banner, setBanner}) {
-    // Constants
+export default function EditForm({
+    collection,
+    name = null,
+    category = null,
+    taxable = null,
+    count = null,
+    date = null,
+    products = null,
+    editForm,
+    toggleEditForm,
+    _id,
+    setRefresh,
+    banner,
+    setBanner,
+}) {
     const NEW_FLAG = -1;
-    const MAX_VAL = 999; // For market allocation/remaining
-    
     const [loading, setLoading] = useState(true);
-    // Control input data for Products
-    const [prodName, setProdName] = useState((collection == "Products" ? name : ""));
-    const handleProdNameChange = e => setProdName(e.target.value);
-    const [prodCategoryOption, setProdCategoryOption] = useState((category != null ? category : ""));
-    const handleProdCategoryChange = option => setProdCategoryOption(option);
+
+    // Product fields
+    const [prodName, setProdName] = useState(name || "");
+    const [prodCategoryOption, setProdCategoryOption] = useState(category || "");
     const [prodNewCategory, setProdNewCategory] = useState("");
-    const handleProdNewCategoryChange = e => setProdNewCategory(e.target.value);
-    const [prodIsTaxable, setProdIsTaxable] = useState((taxable != null ? ((taxable) ? 1 : 0) : 1));
-    const handleProdIsTaxableChange = option => setProdIsTaxable(option);
-    const [prodCount, setProdCount] = useState((count != null ? count : 0));
-    const handleProdCountChange = e => setProdCount(e.target.value);
+    const [prodIsTaxable, setProdIsTaxable] = useState(taxable === "Yes" ? 1 : 0);
+    const [prodCount, setProdCount] = useState(count || 0);
     const [prodOptions, setProdOptions] = useState([]);
-    
-    // Control input data for Markets
-    const [markName, setMarkName] = useState((collection == "Markets" ? name : ""));
-    const handleMarkNameChange = e => setMarkName(e.target.value);
-    const [markDate, setMarkDate] = useState((collection == "Markets" ? date : ""));
-    const handleMarkDateChange = e => setMarkDate(e.target.value);
+
+    // Market fields
+    const [markName, setMarkName] = useState(name || "");
+    const [markDate, setMarkDate] = useState(date || "");
+    const [productManagementModal, setProductManagementModal] = useState(false);
+    const [markProdList, setMarkProdList] = useState([]);
     const [markProdListOptions, setMarkProdListOptions] = useState([]);
-    // List of products at the market
-    const [markProdList, setMarkProdList] = useState((products != null ? products.map(p => {return {value: p._id, label: p.name}}) : []));
-    
-    const [productCountRemaining, setProductCountRemaining] = useState([]);
+
+    // Temp state for editing products inside the modal
+    const [tempMarkProdList, setTempMarkProdList] = useState([]);
+
     const [confirmModal, toggleConfirmModal] = useState(false);
 
-    // Array to handle controls from dynamic Product inputs
-    const [productCountAllocated, setProductCountAllocated] = useState([]);
-    
-    // Handles changes to the Select
-    const handleUpdateMarkProdList = (options) => {
-        setMarkProdList(options);
-        setProductCountAllocated(options.map((opt) => {
-            const i = markProdList.findIndex(p => p.value === opt.value);
-            return i !== NEW_FLAG ? productCountAllocated[i] : 0;
-        }));
-        setProductCountRemaining(options.map((opt) => {
-            const i = markProdList.findIndex(p => p.value === opt.value);
-            return i !== NEW_FLAG ? productCountRemaining[i] : 0;
-        }));
-      };
-      
-    // Handlers for prodCountAllocated and prodCountRemaining
-    const handleProductCountAllocatedChange = (e, i) => setProductCountAllocated(list => {
-        const newList = [...list];
-        const val = Math.floor(e.target.value);
-        if (val < 0) {
-            newList[i] = 0;
-        } else if (val > MAX_VAL) {
-            newList[i] = MAX_VAL;
-        } else {
-            newList[i] = val;
-        }
-        return newList;
-    });
-    const handleProductCountRemainingChange = (e, i) => setProductCountRemaining(list => {
-        const newList = [...list];
-        const val = Math.floor(e.target.value);
-        if (val < 0) {
-            newList[i] = 0;
-        } else if (val > MAX_VAL) {
-            newList[i] = MAX_VAL;
-        } else {
-            newList[i] = val;
-        }
-        return newList;
-    });
-    
-    // Update the counts of individual Products for a Market when the EditForm loads
-    useEffect(() => {
-        if (collection === "Markets" && editForm && products?.length > 0) {
-            const list = products.map(p => ({
-                value: p._id,
-                label: p.name
-            }));
-            setMarkProdList(list);
-            setProductCountAllocated(products.map(p => p.countAllocated ?? 0));
-            setProductCountRemaining(products.map(p => p.countRemaining ?? 0));
-        }
-    }, [editForm, products]);
-    
-    // Populate EditForm dropdowns
     useEffect(() => {
         if (collection === "Products") {
-            setLoading(true);
-            axios.get(`${DB_URL}/getProducts`).then(res => {
-                let list = res.data.map(item => ({ value: item.category, label: item.category }));
-                list.push({ value: NEW_FLAG, label: "-- New Category --" });
-                list = list.filter((a, i, self) => i === self.findIndex(b => b.value === a.value));
-                setProdOptions([...list]);
-            }).catch(err => {
-                console.error(err);
-            }).finally(() => setLoading(false));
+            const data = JSON.parse(localStorage.getItem("wProducts") || "[]");
+            const categories = [...new Set(data.map((p) => p.category))];
+            const options = categories.map((c) => ({ value: c, label: c }));
+            options.push({ value: NEW_FLAG, label: "New Category" });
+            setProdOptions(options);
+            setLoading(false);
+        } else if (collection === "Markets") {
+            const prodData = JSON.parse(localStorage.getItem("wProducts") || "[]");
+            const options = prodData.map((p) => ({ value: p.name, label: p.name }));
+            setMarkProdListOptions(options);
+            const currentMarket = JSON.parse(localStorage.getItem("wMarkets") || "[]").find((m) => m._id === _id);
+            setMarkProdList(currentMarket?.products || []);
+            setLoading(false);
         }
-        if (collection === "Markets") {
-            setLoading(true);
-            axios.get(`${DB_URL}/getProducts`).then(res => {
-                const list = res.data.map(item => ({ value: item._id, label: item.name }));
-                setMarkProdListOptions(list);
-            }).catch(err => {
-                console.error(err);
-            }).finally(() => setLoading(false));
-        }
-    }, [editForm]);
+    }, [collection, _id]);
 
-    // Handle Submit: Update Product or Market
-    const handleSubmit = e => {
+    useEffect(() => {
+        if (productManagementModal) {
+            setTempMarkProdList(markProdList);
+        }
+    }, [productManagementModal, markProdList]);
+
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if (collection == "Products") {
-            axios.put(`${DB_URL}/updateProducts`, {
-                _id: _id,
+        if (collection === "Products") {
+            const stored = JSON.parse(localStorage.getItem("wProducts") || "[]");
+            const updated = stored.map((item) => (item._id === _id) ? {
+                ...item,
                 name: prodName,
-                category: (prodCategoryOption == NEW_FLAG ? prodNewCategory : prodCategoryOption),
-                isTaxable: (prodIsTaxable == 1 ? true : false),
-                count: prodCount
-            }).then(() => {
-                setBanner([true, 0, "Product updated successfully!"]);
-            }).catch(err => {
-                console.error(err);
-                setBanner([true, 2, "An error occurred while trying to update your product. Please try again later."]);
-            }).finally(() => {
-                toggleEditForm(false);
-                setRefresh(true);
-            });
-        } else {
-            axios.put(`${DB_URL}/updateMarkets`, {
-                _id: _id,
+                category: prodCategoryOption === NEW_FLAG ? prodNewCategory : prodCategoryOption.value,
+                isTaxable: prodIsTaxable === 1,
+                count: parseInt(prodCount),
+            } : item );
+            localStorage.setItem("wProducts", JSON.stringify(updated));
+            setBanner([true, 1, `Successfully updated ${prodName}`]);
+        } else if (collection === "Markets") {
+            const stored = JSON.parse(localStorage.getItem("wMarkets") || "[]");
+            const updated = stored.map((item) => (item._id === _id) ? {
+                ...item,
                 name: markName,
                 date: markDate,
-                products: markProdList.map((prod, i) => ({
-                    _id: prod.value,
-                    name: prod.label,
-                    countAllocated: productCountAllocated[i] || 0,
-                    countRemaining: productCountRemaining[i] || 0
-                }))
-            }).then(() => {
-                setBanner([true, 0, "Market updated successfully!"]);
-            }).catch(err => {
-                console.error(err);
-                setBanner([true, 2, "An error occurred while trying to update your market. Please try again later."]);
-            }).finally(() => {
-                toggleEditForm(false);
-                setRefresh(true);
-            });
+                products: markProdList,
+            } : item );
+            localStorage.setItem("wMarkets", JSON.stringify(updated));
+            setBanner([true, 1, `Successfully updated ${markName}`]);
         }
-    }
-    // Soft Delete from database
+        setRefresh(true);
+        toggleEditForm(false);
+    };
+
     const handleDelete = () => {
         if (collection === "Products") {
-            axios.put(`${DB_URL}/deleteProduct`, { _id }).then(() => {
-                setBanner([true, 1, `Product "${name}" was successfully deleted.`]);
-            }).catch(err => {
-                console.error(err);
-                setBanner([true, 2, "An error occurred while trying to delete your product. Please try again later."]);
-            }).finally(() => {
-                toggleEditForm(false);
-                toggleConfirmModal(false);
-                setRefresh(true);
-            });
+            const data = JSON.parse(localStorage.getItem("wProducts") || "[]");
+            const updated = data.filter((p) => p._id !== _id);
+            localStorage.setItem("wProducts", JSON.stringify(updated));
+            setBanner([true, 2, `${name} deleted.`]);
         } else if (collection === "Markets") {
-            console.log(_id, name)
-            axios.put(`${DB_URL}/deleteMarket`, { _id }).then(() => {
-                setBanner([true, 1, `Market "${name}" was successfully deleted.`]);
-            }).catch(err => {
-                console.error(err);
-                setBanner([true, 2, "An error occurred while trying to delete your market. Please try again later."]);
-            }).finally(() => {
-                toggleEditForm(false);
-                toggleConfirmModal(false);
-                setRefresh(true);
-            });
+            const data = JSON.parse(localStorage.getItem("wMarkets") || "[]");
+            const updated = data.filter((m) => m._id !== _id);
+            localStorage.setItem("wMarkets", JSON.stringify(updated));
+            setBanner([true, 2, `${name} deleted.`]);
         }
-    }
-    
-    if (editForm) {
-        // Product edit form
-        if (collection == "Products") {
-            return (
-                <div id="editFormWrap" className="modalWrap">
-                    <div id="editModal" className="modal">
-                        <h2>Edit {name}</h2>
-                        <div className="closeBtn" onClick={() => toggleEditForm(false)}>
-                            <div></div>
-                            <div></div>
-                        </div>
-                        <form id="EditForm" className="popupForm" onSubmit={handleSubmit}>
+        setRefresh(true);
+        toggleEditForm(false);
+    };
+
+    // Product handlers
+    const handleProdCategoryChange = (option) => setProdCategoryOption(option);
+    const handleProdNewCategoryChange = (e) => setProdNewCategory(e.target.value);
+    const handleProdIsTaxableChange = (option) => setProdIsTaxable(option.value);
+    const handleProdCountChange = (e) => setProdCount(e.target.value);
+    const handleProdNameChange = (e) => setProdName(e.target.value);
+
+    // Market handlers
+    const handleMarkNameChange = (e) => setMarkName(e.target.value);
+    const handleMarkDateChange = (e) => setMarkDate(e.target.value);
+
+    const filteredMarkProdListOptions = markProdListOptions.filter(
+        (opt) => !tempMarkProdList.some((p) => p.name === opt.value)
+    );
+
+    const handleAddProductToTempList = (selected) => {
+        if (!selected) return;
+        const newProduct = {
+            name: selected.value,
+            countAllocated: 0,
+            countRemaining: 0,
+        };
+        setTempMarkProdList((prev) => [...prev, newProduct]);
+    };
+
+    const updateTempProductCount = (index, field, value) => {
+        setTempMarkProdList((prev) => {
+            const updated = [...prev];
+            const num = parseInt(value);
+            updated[index] = {
+                ...updated[index],
+                [field]: isNaN(num) || num < 0 ? 0 : num,
+            };
+            return updated;
+        });
+    };
+
+    const toggleProductDeletion = (name) => {
+        setTempMarkProdList((prev) =>
+            prev.map((p) => p.name === name ? { ...p, deleted: !p.deleted } : p
+        ));
+    };
+
+    const saveProductManagementChanges = (closeAfterSave = true) => {
+        const filtered = tempMarkProdList.filter(p => !p.deleted);
+        setMarkProdList(filtered);
+        setBanner([true, 0, `Successfully updated products for ${markName}`]);
+        if (closeAfterSave) {
+            setProductManagementModal(false);
+        }
+    };
+
+
+    const cancelProductManagementChanges = () => {
+        setBanner([true, 1, `Discarded product changes`]);
+        setProductManagementModal(false);
+    };
+
+    if (!editForm) return null;
+
+    return (
+        <div id="editFormWrap" className="modalWrap">
+            <div id="editModal" className="modal">
+                <h2>Edit {name}</h2>
+                <button type="button" className="closeBtn" onClick={() => toggleEditForm(false)}></button>
+                <form id="editForm" className="popupForm" onSubmit={handleSubmit}>
+                    {collection === "Products" ? (
+                        <>
                             <div>
                                 <label htmlFor="prodName">Product Name:</label>
                                 <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
                             </div>
                             <div>
                                 <label htmlFor="prodCategory">Product Category:</label>
-                                {loading ? <Loading /> : 
-                                    <Select className="select" options={prodOptions} onChange={handleProdCategoryChange} value={{value: category, label: category}} required />
-                                }
+                                {loading ? (
+                                    <Loading />
+                                ) : (
+                                    <Select
+                                        className="select"
+                                        options={prodOptions}
+                                        onChange={handleProdCategoryChange}
+                                        value={prodOptions.find(opt => (prodCategoryOption === NEW_FLAG) ? false : opt.value === prodCategoryOption.value || opt.value === prodCategoryOption)}
+                                        required
+                                    />
+                                )}
                             </div>
-                            {prodCategoryOption === NEW_FLAG ?
+                            {prodCategoryOption === NEW_FLAG && (
                                 <div>
                                     <label htmlFor="prodNewCategory">New Category:</label>
                                     <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
                                 </div>
-                            : null}
+                            )}
                             <div>
                                 <label htmlFor="prodTaxable">Taxable?</label>
-                                <Select className="select" options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]} onChange={handleProdIsTaxableChange} value={{value: (taxable === "Yes" ? 1 : 0), label: taxable}} required />
+                                <Select
+                                    className="select"
+                                    options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]}
+                                    onChange={handleProdIsTaxableChange}
+                                    value={{ value: prodIsTaxable, label: prodIsTaxable === 1 ? "Yes" : "No" }}
+                                    required
+                                />
                             </div>
                             <div>
                                 <label htmlFor="prodCount">Product Count:</label>
@@ -221,82 +217,103 @@ export default function EditForm({collection, DB_URL, name=null, category=null, 
                             </div>
                             <div className="half">
                                 <button type="submit">Save</button>
-                                <button type="button" className="deleteBtn" onClick={() => toggleConfirmModal(true)}>Delete Product</button>
+                                <button type="button" className="deleteBtn" onClick={() => toggleConfirmModal(true)}>Delete</button>
                             </div>
-                        </form>
-                        <ConfirmationModal name={name} confirmModal={confirmModal} toggleConfirmModal={toggleConfirmModal} handleDelete={handleDelete} />
-                    </div>
-                </div>
-            );
-        }
-        // Market edit form
-        else if (collection == "Markets") {
-            return (
-                <div id="editFormWrap" className="modalWrap">
-                    <div id="editModal" className="modal">
-                        <h2>Edit {name}</h2>
-                        <div className="closeBtn" onClick={() => toggleEditForm(false)}>
-                            <div></div>
-                            <div></div>
-                        </div>
-                        <form id="EditForm" className="popupForm" onSubmit={handleSubmit}>
-                            <div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="formInputRow">
                                 <label htmlFor="markName">Market Name:</label>
                                 <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />
                             </div>
-                            <div>
+                            <div className="formInputRow">
                                 <label htmlFor="markDate">Market Date:</label>
-                                <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} />
+                                <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />
                             </div>
-                            {loading ? <Loading /> : <>
-                                <div>
-                                    <label htmlFor="markProds">Products:</label>
-                                        <Select className="select" options={markProdListOptions} onChange={handleUpdateMarkProdList} value={markProdList} isMulti />
-                                </div>
-                                <div>
-                                    <div className="table edit">
-                                        <div className="tr thead">
-                                            <div className="th">Name</div>
-                                            <div className="th">Sent</div>
-                                            <div className="th">Left</div>
-                                        </div>
-                                        <div className="tbody">
-                                            {markProdList.map((p, i) => (
-                                                <div className="tr" key={`${p.value}${p.label}${i}`}>
-                                                    <div className="td">{p.label}</div>
-                                                    <div className="td">
-                                                        <input
-                                                            type="number"
-                                                            name={`prodAllocated${i}`}
-                                                            id={`prodAllocated${i}`}
-                                                            value={productCountAllocated[i] || 0}
-                                                            onChange={e => handleProductCountAllocatedChange(e, i)}
-                                                        />
-                                                    </div>
-                                                    <div className="td">
-                                                        <input
-                                                            type="number"
-                                                            name={`prodRemaining${i}`}
-                                                            id={`prodRemaining${i}`}
-                                                            value={productCountRemaining[i] || 0}
-                                                            onChange={e => handleProductCountRemainingChange(e, i)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
+                            <div>
+                                <button type="button" onClick={() => { setLoading(true); setProductManagementModal(true); }}>Manage Products</button>
+                            </div>
+                            {productManagementModal && (
+                                <div className="productManagementModal">
+                                    <div className="addProductSection">
+                                        <button onClick={cancelProductManagementChanges} className="productManagementCloseBtn" aria-label="Close product management modal"></button>
+                                        <h3>Manage Products</h3>
+                                        <div className="addProductSelectWrap">
+                                            <h5>Add Product</h5>
+                                            <Select className="select" options={filteredMarkProdListOptions} onChange={handleAddProductToTempList} value={null} isClearable />
                                         </div>
                                     </div>
+                                    <div className="productListWrap">
+                                        <h5>Current Products</h5>
+                                        {tempMarkProdList.length === 0 ? (
+                                            <p>No products added yet.</p>
+                                        ) : (
+                                            <ul className="productList">
+                                                <li className="productListHeader">
+                                                    <div className="productName">Product Name</div>
+                                                    <div className="productCountAllocated">Out</div>
+                                                    <div className="productCountRemaining">Return</div>
+                                                    <div className="productRemove"></div>
+                                                </li>
+                                                {[...tempMarkProdList].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => (
+                                                    <li key={i} className={`productListItem ${p.deleted ? "removed" : ""}`}>
+                                                        <div className="productName">
+                                                            <strong>{p.name}</strong>
+                                                        </div>
+                                                        <div className="productCountAllocated">
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={p.countAllocated}
+                                                                onChange={(e) => updateTempProductCount(i, "countAllocated", e.target.value)}
+                                                                className="productCountInput"
+                                                                disabled={p.deleted}
+                                                            />
+                                                        </div>
+                                                        <div className="productCountRemaining">
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={p.countRemaining}
+                                                                onChange={(e) => updateTempProductCount(i, "countRemaining", e.target.value)}
+                                                                className="productCountInput"
+                                                                disabled={p.deleted}
+                                                            />
+                                                        </div>
+                                                        <div className="productRemove">
+                                                            <button type="button" onClick={() => toggleProductDeletion(p.name)} aria-label={`${p.deleted ? "Undo" : "Remove"} ${p.name}`} className={`productRemoveBtn ${p.deleted ? "undo" : ""}`}></button>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+
+                                    <div className="modalButtonsRow">
+                                        <button type="button" onClick={() => saveProductManagementChanges(false)}>Save</button>
+                                        <button type="button" onClick={saveProductManagementChanges}>Save & Close</button>
+                                    </div>
                                 </div>
-                            </> }
+                            )}
+
                             <div className="half">
                                 <button type="submit">Save</button>
-                                <button type="button" className="deleteBtn" onClick={() => toggleConfirmModal(true)}>Delete Market</button>
+                                <button type="button" className="deleteBtn" onClick={() => toggleConfirmModal(true)}>Delete</button>
                             </div>
-                        </form>
-                        <ConfirmationModal name={name} confirmModal={confirmModal} toggleConfirmModal={toggleConfirmModal} handleDelete={handleDelete} market />
-                    </div>
-                </div>
-            );
-        }
-    }
+                        </>
+                    )}
+                </form>
+
+                {confirmModal && (
+                    <ConfirmationModal
+                        confirmModal={confirmModal}
+                        toggleConfirmModal={toggleConfirmModal}
+                        handleDelete={handleDelete}
+                        name={name}
+                        collection={collection}
+                    />
+                )}
+            </div>
+        </div>
+    );
 }

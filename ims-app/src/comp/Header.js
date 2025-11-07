@@ -1,15 +1,12 @@
-import { useState } from "react";
 import "../styles/header.css";
 
-export default function Header({nav=false, toggleSignedIn, setPage, setCollection, subNav=true}) {
-    const [activeNav, toggleActiveNav] = useState(1);
-    const [activeSubNav, toggleActiveSubNav] = useState(0);
+export default function Header({nav=false, toggleSignedIn, setPage, setCollection, activeNav, setActiveNav, activeSubNav=null, setActiveSubNav=null}) {
 
     // x = page, y = collection
     const handleClick = (x, y) => {
         setPage(x);
         setCollection(y);
-        toggleActiveSubNav(0);
+        setActiveSubNav(1);
     }
 
     if (nav) {
@@ -17,16 +14,22 @@ export default function Header({nav=false, toggleSignedIn, setPage, setCollectio
             <>
                 <header>
                     <nav>
-                        <div className={activeNav == 0 ? "active navBtn list" : "navBtn list"} onClick={()=>{toggleActiveNav(0); handleClick(2, "Products")}}></div>
-                        <div className={activeNav == 1 ? "active navBtn logo" : "navBtn logo"} onClick={()=>{toggleActiveNav(1); handleClick(0, "Dashboard")}}></div>
-                        <div className={activeNav == 3 ? "active navBtn repo" : "navBtn repo"} onClick={()=>{toggleActiveNav(3); handleClick(3, "Report")}}></div>
+                        <div className={activeNav === 0 ? "active navBtn" : "navBtn"} onClick={()=>{setActiveNav(0); handleClick(1, "Markets")}}>
+                            <div className="list"></div>
+                        </div>
+                        <div className={activeNav === 1 ? "active navBtn" : "navBtn"} onClick={()=>{setActiveNav(1); handleClick(0, "Dashboard")}}>
+                            <div className="logo"></div>
+                        </div>
+                        <div className={activeNav === 2 ? "active navBtn" : "navBtn"} onClick={()=>{setActiveNav(2); handleClick(2, "Report")}}>
+                            <div className="repo"></div>
+                        </div>
                     </nav>
                 </header>
                 {activeNav === 0 ?
                     <div id="subNav">
                             <>
-                                <div className={activeSubNav == 0 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(0); setCollection("Products")}}><h4>Products</h4></div>
-                                <div className={activeSubNav == 1 ? "active subNav" : "subNav"} onClick={()=>{toggleActiveSubNav(1); setCollection("Markets")}}><h4>Markets</h4></div>
+                                <div className={activeSubNav === 0 ? "active subNav" : "subNav"} onClick={()=>{setActiveSubNav(0); setCollection("Products")}}><h4>Products</h4></div>
+                                <div className={activeSubNav === 1 ? "active subNav" : "subNav"} onClick={()=>{setActiveSubNav(1); setCollection("Markets")}}><h4>Markets</h4></div>
                             </>
                     </div>
                 : null}
