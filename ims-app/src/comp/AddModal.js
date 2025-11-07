@@ -203,125 +203,128 @@ export default function AddModal({ toggleAddModal, addModal, collection, setRefr
     if (!addModal) return null;
 
     return (
-        <div id="addModalWrap" className="modalWrap">
-            <div id="addModal" className="modal">
-                <h2>Add {collection === "Products" ? "Product" : "Market"}</h2>
-                <div className="closeBtn" onClick={handleClose}>
-                    <div></div>
-                    <div></div>
-                </div>
-                {loading ? <Loading /> : collection === "Products" ? (
-                    <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
-                        <div>
-                            <label htmlFor="prodName">Product Name:</label>
-                            <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
-                        </div>
-                        <div>
-                            <label htmlFor="prodCategory">Product Category:</label>
-                            <Select className="select" options={prodOptions} value={prodOptions.find(opt => opt.value === prodCategoryOption) || null} onChange={handleCategoryChange} required />
-                        </div>
-                        {prodCategoryOption === NEW_FLAG &&
+        <>
+            <div className="overlay"></div>
+            <div id="addModalWrap" className="modalWrap">
+                <div id="addModal" className="modal">
+                    <h2>Add {collection === "Products" ? "Product" : "Market"}</h2>
+                    <div className="closeBtn" onClick={handleClose}>
+                        <div></div>
+                        <div></div>
+                    </div>
+                    {loading ? <Loading /> : collection === "Products" ? (
+                        <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
                             <div>
-                                <label htmlFor="prodNewCategory">New Category:</label>
-                                <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
-                            </div>}
-                        <div>
-                            <label htmlFor="prodTaxable">Taxable?</label>
-                            <Select className="select" options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]} onChange={handleProdIsTaxableChange} required />
-                        </div>
-                        <div>
-                            <label htmlFor="prodCount">Product Count:</label>
-                            <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
-                        </div>
-                        <div>
-                            <button type="submit">Submit</button>
-                        </div>
-                    </form>
-                ) : (
-                    <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
-                        <div>
-                            <label htmlFor="markName">Market Name:</label>
-                            <Select className="select" options={markNames} onChange={handleMarkNameOptChange} value={markOpt} required />
-                        </div>
-                        {markOpt?.value === NEW_FLAG &&
+                                <label htmlFor="prodName">Product Name:</label>
+                                <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
+                            </div>
                             <div>
-                                <label htmlFor="markName">New Market Name:</label>
-                                <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />
-                            </div>}
-                        <div>
-                            <label htmlFor="markDate">Date:</label>
-                            <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />
-                        </div>
-                        <div>
-                            <button type="button" onClick={() => {
-                                setTempMarketProducts(marketProducts);
-                                setProductManagementModal(true);
-                            }}>
-                                Manage Products
-                            </button>
-                        </div>
+                                <label htmlFor="prodCategory">Product Category:</label>
+                                <Select className="select" options={prodOptions} value={prodOptions.find(opt => opt.value === prodCategoryOption) || null} onChange={handleCategoryChange} required />
+                            </div>
+                            {prodCategoryOption === NEW_FLAG &&
+                                <div>
+                                    <label htmlFor="prodNewCategory">New Category:</label>
+                                    <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
+                                </div>}
+                            <div>
+                                <label htmlFor="prodTaxable">Taxable?</label>
+                                <Select className="select" options={[{ value: 1, label: "Yes" }, { value: 0, label: "No" }]} onChange={handleProdIsTaxableChange} required />
+                            </div>
+                            <div>
+                                <label htmlFor="prodCount">Product Count:</label>
+                                <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
+                            </div>
+                            <div>
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
+                    ) : (
+                        <form id="addForm" className="popupForm" onSubmit={handleSubmit}>
+                            <div>
+                                <label htmlFor="markName">Market Name:</label>
+                                <Select className="select" options={markNames} onChange={handleMarkNameOptChange} value={markOpt} required />
+                            </div>
+                            {markOpt?.value === NEW_FLAG &&
+                                <div>
+                                    <label htmlFor="markName">New Market Name:</label>
+                                    <input type="text" name="markName" id="markName" value={markName} onChange={handleMarkNameChange} required />
+                                </div>}
+                            <div>
+                                <label htmlFor="markDate">Date:</label>
+                                <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />
+                            </div>
+                            <div>
+                                <button type="button" onClick={() => {
+                                    setTempMarketProducts(marketProducts);
+                                    setProductManagementModal(true);
+                                }}>
+                                    Manage Products
+                                </button>
+                            </div>
 
-                        {productManagementModal && (
-                            <div className="productManagementModal">
-                                <div className="addProductSection">
-                                    <button onClick={cancelProductManagementChanges} className="productManagementCloseBtn" aria-label="Close product management modal"></button>
-                                    <h3>Manage Products</h3>
-                                    <div className="addProductSelectWrap">
-                                        <h5>Add Product</h5>
-                                        <Select
-                                            className="select"
-                                            options={markProdOptions.filter(opt => !tempMarketProducts.some(p => p.name === opt.value))}
-                                            onChange={handleAddProductToTempList}
-                                            isClearable
-                                        />
+                            {productManagementModal && (
+                                <div className="productManagementModal">
+                                    <div className="addProductSection">
+                                        <button onClick={cancelProductManagementChanges} className="productManagementCloseBtn" aria-label="Close product management modal"></button>
+                                        <h3>Manage Products</h3>
+                                        <div className="addProductSelectWrap">
+                                            <h5>Add Product</h5>
+                                            <Select
+                                                className="select"
+                                                options={markProdOptions.filter(opt => !tempMarketProducts.some(p => p.name === opt.value))}
+                                                onChange={handleAddProductToTempList}
+                                                isClearable
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="productListWrap">
+                                        <h5>Current Products</h5>
+                                        {tempMarketProducts.length === 0 ? (
+                                            <p>No products added yet.</p>
+                                        ) : (
+                                            <ul className="productList">
+                                                <li className="productListHeader">
+                                                    <div className="productName">Product Name</div>
+                                                    <div className="productCountAllocated">Allocated</div>
+                                                    <div className="productRemove"></div>
+                                                </li>
+                                                {tempMarketProducts.map((p, i) => (
+                                                    <li key={i} className="productListItem">
+                                                        <div className="productName"><strong>{p.name}</strong></div>
+                                                        <div className="productCountAllocated">
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                max={MAX_VAL}
+                                                                value={p.countAllocated}
+                                                                onChange={(e) => updateTempProductCount(i, e.target.value)}
+                                                                className="productCountInput"
+                                                            />
+                                                        </div>
+                                                        <div className="productRemove">
+                                                            <button type="button" onClick={() => {
+                                                                setTempMarketProducts(prev => prev.filter((_, idx) => idx !== i));
+                                                            }} className="productRemoveBtn" aria-label={`Remove ${p.name}`}></button>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                    <div className="modalButtonsRow">
+                                        <button type="button" onClick={saveProductManagementChanges}>Save</button>
                                     </div>
                                 </div>
-                                <div className="productListWrap">
-                                    <h5>Current Products</h5>
-                                    {tempMarketProducts.length === 0 ? (
-                                        <p>No products added yet.</p>
-                                    ) : (
-                                        <ul className="productList">
-                                            <li className="productListHeader">
-                                                <div className="productName">Product Name</div>
-                                                <div className="productCountAllocated">Allocated</div>
-                                                <div className="productRemove"></div>
-                                            </li>
-                                            {tempMarketProducts.map((p, i) => (
-                                                <li key={i} className="productListItem">
-                                                    <div className="productName"><strong>{p.name}</strong></div>
-                                                    <div className="productCountAllocated">
-                                                        <input
-                                                            type="number"
-                                                            min={0}
-                                                            max={MAX_VAL}
-                                                            value={p.countAllocated}
-                                                            onChange={(e) => updateTempProductCount(i, e.target.value)}
-                                                            className="productCountInput"
-                                                        />
-                                                    </div>
-                                                    <div className="productRemove">
-                                                        <button type="button" onClick={() => {
-                                                            setTempMarketProducts(prev => prev.filter((_, idx) => idx !== i));
-                                                        }} className="productRemoveBtn" aria-label={`Remove ${p.name}`}></button>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                                <div className="modalButtonsRow">
-                                    <button type="button" onClick={saveProductManagementChanges}>Save</button>
-                                </div>
-                            </div>
-                        )}
+                            )}
 
-                        <div>
-                            <button type="submit">Submit</button>
-                        </div>
-                    </form>
-                )}
+                            <div>
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
