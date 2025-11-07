@@ -329,7 +329,7 @@ export default function App() {
             setBanner([true, 1, "Upload Sync completed successfully!"]);
         } catch (err) {
             console.error("Upload Sync failed:", err);
-            setBanner([true, 2, "Upload Sync failed. Check console."]);
+            setBanner([true, 2, "Upload Sync failed. Check console for more information."]);
         } finally {
             setLoading(false);
         }
