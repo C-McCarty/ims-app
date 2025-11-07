@@ -152,15 +152,9 @@ export default function AddModal({ toggleAddModal, addModal, collection, setRefr
             const market = storedMarkets.find(m => m.name === markOpt.value);
             if (market) {
                 setMarkName(market.name);
-                setMarkDate(market.date);
-                const products = market.products.map(p => ({
-                    _id: p._id,
-                    name: p.name,
-                    countAllocated: p.countAllocated,
-                    countRemaining: p.countRemaining
-                }));
-                setMarketProducts(products);
-                setTempMarketProducts(products);
+                setMarkDate("");
+                setMarketProducts([]);
+                setTempMarketProducts([]);
             }
         } else if (markOpt?.value === NEW_FLAG) {
             setMarkName("");
