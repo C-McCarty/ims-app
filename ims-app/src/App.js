@@ -460,7 +460,7 @@ export default function App() {
                 : page === 0 ? <Dashboard />
                 : page === 1 ? <List />
                 : page === 2 ? <Report />
-                : <Error404 /> };
+                : <Error404 /> }
             </div>
             {banner[0] &&
                 <Banner active={banner[0]} type={banner[1]} msg={banner[2]} />
