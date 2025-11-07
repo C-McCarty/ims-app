@@ -39,10 +39,26 @@ export default function App() {
     // const [recentMarkets, setRecentMarkets] = useState([]);
 
     useEffect(() => {
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
         const DB = localStorage.getItem('DB_URL');
         if (DB !== null && DB.length > 0) {
             setDB_URL(DB);
         }
+        const enterFullScreen = () => {
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Safari
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
+            }
+        };
+        enterFullScreen();
     }, []);
 
     useEffect(() => {
@@ -94,6 +110,12 @@ export default function App() {
         if (banner[0]) {
             setTimeout(() => {
                 setBanner([false, -1, ""]);
+                if (Notification.permission === 'granted') {
+                new Notification('Action Confirmed', {
+                    body: 'Your action was successfully completed!',
+                    icon: './media/icons/success.svg',
+                });
+                }
             }, 3500);
         }
     }, [banner]);
@@ -281,24 +303,31 @@ export default function App() {
             console.log(productDiff);
             // Handle added products
             for (const product of productDiff.added) {
-                // Remove _tempid before sending
                 if (product._tempid) {
                     delete product._tempid;
                 }
                 console.log(product);
                 await axios.post(`${DB_URL}/addProducts`, product);
             }
-            // Handle updated products
+            // Handle updated products (send only changed fields)
             for (const product of productDiff.updated) {
-                console.log(product);
-                await axios.put(`${DB_URL}/updateProducts`, product);
+                const imageProduct = (imageProducts || []).find(p => (p._id || p._tempid) === (product._id || product._tempid));
+                const changedFields = {};
+                for (const key in product) {
+                    if (JSON.stringify(product[key]) !== JSON.stringify(imageProduct?.[key])) {
+                        changedFields[key] = product[key];
+                    }
+                }
+                changedFields._id = product._id;
+                console.log(changedFields);
+                await axios.put(`${DB_URL}/updateProducts`, changedFields);
             }
             // Handle deleted products (soft delete)
             for (const product of productDiff.deleted) {
                 console.log(product);
                 await axios.put(`${DB_URL}/deleteProduct`, { _id: product._id });
             }
-            
+
             // Diff for Markets
             const marketDiff = diffItems(imageMarkets || [], workingMarkets || []);
             console.log(marketDiff);
@@ -310,8 +339,16 @@ export default function App() {
                 await axios.post(`${DB_URL}/addMarkets`, market);
             }
             for (const market of marketDiff.updated) {
-                console.log(market);
-                await axios.put(`${DB_URL}/updateMarkets`, market);
+                const imageMarket = (imageMarkets || []).find(m => (m._id || m._tempid) === (market._id || market._tempid));
+                const changedFields = {};
+                for (const key in market) {
+                    if (JSON.stringify(market[key]) !== JSON.stringify(imageMarket?.[key])) {
+                        changedFields[key] = market[key];
+                    }
+                }
+                changedFields._id = market._id;
+                console.log(changedFields);
+                await axios.put(`${DB_URL}/updateMarkets`, changedFields);
             }
             for (const market of marketDiff.deleted) {
                 console.log(market);
@@ -320,7 +357,7 @@ export default function App() {
 
             // Refresh local image and working copies after successful upload
             await resetLocalData(); // This fetches fresh from server and resets localStorage
-            
+
             setImageProducts(JSON.parse(localStorage.getItem("iProducts")));
             setWorkingProducts(JSON.parse(localStorage.getItem("wProducts")));
             setImageMarkets(JSON.parse(localStorage.getItem("iMarkets")));
@@ -360,29 +397,32 @@ export default function App() {
                     </div>
                 </main>
                 {modalOpen && (
-                    <div id='modalWrap'>
-                        <div id="modal">
-                            <h2>McCarty Farm Inventory Management System</h2>
-                            <div className='closeBtn' onClick={() => toggleModalOpen(false)}>
-                                <div></div>
-                                <div></div>
+                    <>
+                        <div className="overlay"></div>
+                        <div id='modalWrap'>
+                            <div id="modal">
+                                <h2>McCarty Farm Inventory Management System</h2>
+                                <div className='closeBtn' onClick={() => toggleModalOpen(false)}>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                                <h3>Developer: Cameron McCarty</h3>
+                                <div id='logout' onClick={async () => {
+                                    await Promise.all([
+                                        setPage(-1),
+                                        setDB_URL(""),
+                                        localStorage.removeItem('DB_URL'),
+                                        localStorage.removeItem('iProducts'),
+                                        localStorage.removeItem('wProducts'),
+                                        localStorage.removeItem('iMarkets'),
+                                        localStorage.removeItem('wMarkets'),
+                                        toggleSignedIn(false),
+                                        toggleModalOpen(false)
+                                    ]);
+                                }}></div>
                             </div>
-                            <h3>Developer: Cameron McCarty</h3>
-                            <div id='logout' onClick={async () => {
-                                await Promise.all([
-                                    setPage(-1),
-                                    setDB_URL(""),
-                                    localStorage.removeItem('DB_URL'),
-                                    localStorage.removeItem('iProducts'),
-                                    localStorage.removeItem('wProducts'),
-                                    localStorage.removeItem('iMarkets'),
-                                    localStorage.removeItem('wMarkets'),
-                                    toggleSignedIn(false),
-                                    toggleModalOpen(false)
-                                ]);
-                            }}></div>
                         </div>
-                    </div>
+                    </>
                 )}
             </>
         );

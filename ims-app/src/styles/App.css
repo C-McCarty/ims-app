@@ -1,20 +1,29 @@
 :root {
-    --main: #08F;
+    --main: #08f;
+}
+html {
+    background-color: var(--main);
+    height: 100vh;
+}
+html, body, #root, .App {
+    overflow: hidden;
+    overscroll-behavior: none;
 }
 /* General */
 .App {
+    margin-top: 5vh;
     display: flex;
     flex-wrap: wrap;
     width: 100vw;
-    height: 100vh;
+    height: 95vh;
     justify-content: center;
     align-items: start;
-    background-color: #fff;
+    background-color: #FFF;
 }
 .App:has(#subNav) main { height: 80vh; }
 main {
     width: 100vw;
-    height: 90vh;
+    height: 85vh;
     background-color: #FFF;
     display: flex;
     align-items: center;
@@ -112,6 +121,7 @@ button:active {
 }
 #modal {
     background-color: #FFF;
+    margin-top: 5vh;
     height: 95vh;
     padding-top: 35vh;
     padding-bottom: 35vh;
@@ -310,111 +320,11 @@ button:active {
     margin: 0;
     text-align: center;
 }
-/* Modal Styling */
-/* .modalWrap {
-    position: fixed;
-    z-index: 1000;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0vh;
-    backdrop-filter: blur(5px);
-    background-color: #FFF8;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    animation: moveIn 0.25s;
-    overflow: hidden;
-}
-.modal {
-    width: 100vw;
-    max-height: 100vh;
-    background-color: #fff;
-    position: relative;
-    padding: 1rem;
-    padding-top: 9vh;
-    box-shadow: 0 5px 10px #0003;
-}
-.popupForm {
-    display: flex;
-    flex-wrap: wrap;
-    max-height: 70vh;
-    overflow-y: auto;
-}
-.popupForm > div {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0.5rem;
-    width: 100%;
-}
-.popupForm label {
-    flex-basis: 100%;
-    padding: 0.5rem;
-    color: var(--main);
-    font-weight: bold;
-    font-size: 1.25rem;
-}
-.popupForm div input,
-.select {
-    margin-left: 1rem;
-    margin-right: 1rem;
-    font-size: 1rem;
-    padding: 0.125rem;
-    flex-grow: 1;
-}
-.select > div > div {
-    max-height: 4rem;
-    overflow-y: auto;
-}
-.popupForm div:has(button) {
-    margin-top: 1rem;
-    justify-content: center;
-    flex-grow: 1;
-}
-.modal .popupForm button {
-    width: 90%;
-    margin: 0;
-}
-.modal .popupForm .half button {
-    width: 45%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.modal .popupForm .half {
-    justify-content: space-between;
-}
-.modal .popupForm button.deleteBtn {
-    color: red;
-    border-color: red;
-}
-.modal .popupForm button.deleteBtn:active {
-    background-color: red;
-    color: #fff;
-}
-.modal .popupForm div:has(.addBtn) {
-    justify-content: space-between;
-}
-.modal .popupForm .addBtn {
-    background-image: url(../media/add.svg);
-    background-size: 125%;
-    background-position: center center;
-    background-repeat: no-repeat;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border-radius: 0;
-    border: none;
-}
-.modal .popupForm .table {
-    max-height: 8rem;
-    width: 100%;
-} */
 /* Banner Message Styling */
 .banner {
     position: fixed;
     top: 0vh;
-    margin-top: 1vh;
+    margin-top: 6vh;
     padding: 1rem;
     width: 90vw;
     border-radius: 0.5rem;
@@ -560,20 +470,19 @@ button:active {
     #dashboard { align-items: center; }
     .widget { width: 30%; }
 }
-
-
-
-
-
-
-
-
-
-
-
-.modalWrap {
+.overlay, .overlay2 {
     position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900;
+    pointer-events: none;
+}
+.overlay2 { z-index: 1900; }
+.modalWrap {
+    position: fixed;
+    top: 5vh;
     left: 0;
     right: 0;
     bottom: 0;
@@ -582,9 +491,16 @@ button:active {
     display: flex;
     flex-direction: column;
 }
+#addModal form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 50vh;
+}
 .modal {
     padding: 1rem;
     flex-grow: 1;
+    height: 100%;
 }
 .modal .half {
     display: flex;
@@ -607,9 +523,11 @@ button:active {
     flex-direction: column;
     flex-basis: 10%;
 }
-#editForm :nth-child(3) {
+#editForm > :nth-child(3) {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    width: 70%;
+    margin-left: 15%;
     flex-basis: 30%;
 }
 #editForm > .half {
@@ -619,7 +537,6 @@ button:active {
 #editForm input {
     font-size: 1.5rem;
 }
-
 .productManagementModal {
     padding: 1rem;
     position: fixed;
@@ -627,13 +544,14 @@ button:active {
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 2000;
     width: 100vw;
-    height: 100vh;
+    height: 95vh;
     background-color: #FFF;
 }
 .productManagementCloseBtn {
     position: fixed;
-    top: 1rem;
+    top: 5vh;
     right: 1rem;
     z-index: 3000;
     padding: 0;
@@ -648,6 +566,7 @@ button:active {
 }
 #editForm .addProductSection {
     height: 20vh;
+    margin-top: 5vh;
 }
 .addProductSelectWrap {
     display: flex;
