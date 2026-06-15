@@ -11,6 +11,23 @@ import Banner from './comp/Banner';
 import ReportMenu from './comp/ReportMenu';
 import { sha256 } from 'js-sha256';
 
+// Sort a working list in place: Products alphabetically, Markets by date (newest first) then name.
+function sortCollection(data, collection) {
+    if (collection === "Products") {
+        data.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+        data.sort((a, b) => {
+            const D1 = new Date(a.date);
+            const D2 = new Date(b.date);
+            if (D1.getTime() === D2.getTime()) {
+                return a.name.localeCompare(b.name);
+            }
+            return D2 - D1;
+        });
+    }
+    return data;
+}
+
 export default function App() {
     const [imageProducts, setImageProducts] = useState(null);
     const [workingProducts, setWorkingProducts] = useState(null);
@@ -35,88 +52,49 @@ export default function App() {
     const [refresh, setRefresh] = useState(0);
 
     const [page, setPage] = useState(-1);
-    // const [bestSellers, setBestSellers] = useState([]);
-    // const [recentMarkets, setRecentMarkets] = useState([]);
 
     useEffect(() => {
-        if (Notification.permission !== 'granted') {
+        // Ask once for OS notification permission, guarding browsers that lack the API.
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
             Notification.requestPermission();
         }
         const DB = localStorage.getItem('DB_URL');
         if (DB !== null && DB.length > 0) {
             setDB_URL(DB);
         }
-        const enterFullScreen = () => {
-            const element = document.documentElement;
-            if (element.requestFullscreen) {
-                element.requestFullscreen();
-            } else if (element.mozRequestFullScreen) { // Firefox
-                element.mozRequestFullScreen();
-            } else if (element.webkitRequestFullscreen) { // Safari
-                element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) { // IE/Edge
-                element.msRequestFullscreen();
-            }
-        };
-        enterFullScreen();
     }, []);
 
+    // Load and sort the working copy whenever the list page opens, the collection
+    // changes, or a refresh is requested.
     useEffect(() => {
         if (page === 1) {
             setLoading(true);
             const stored = localStorage.getItem(`w${collection}`);
-            let data = stored ? JSON.parse(stored) : [];
-            if (collection === "Products") {
-                data.sort((a, b) => a.name.localeCompare(b.name));
-            } else {
-                data.sort((a, b) => {
-                    const D1 = new Date(a.date);
-                    const D2 = new Date(b.date);
-                    if (D1.getTime() === D2.getTime()) {
-                        return a.name.localeCompare(b.name);
-                    }
-                    return D2 - D1;
-                });
-            }
-            setViewData(data);
-            setLoading(false);
-        }
-    }, [page, collection]);
-
-    useEffect(() => {
-        if (refresh && page === 1) {
-            setLoading(true);
-            const stored = localStorage.getItem(`w${collection}`);
-            let data = stored ? JSON.parse(stored) : [];
-            if (collection === "Products") {
-                data.sort((a, b) => a.name.localeCompare(b.name));
-            } else {
-                data.sort((a, b) => {
-                    const D1 = new Date(a.date);
-                    const D2 = new Date(b.date);
-                    if (D1.getTime() === D2.getTime()) {
-                        return a.name.localeCompare(b.name);
-                    }
-                    return D2 - D1;
-                });
-            }
+            const data = sortCollection(stored ? JSON.parse(stored) : [], collection);
             setViewData(data);
             setRefresh(false);
             setLoading(false);
         }
-    }, [refresh, collection, page]);
+    }, [page, collection, refresh]);
 
     useEffect(() => {
         if (banner[0]) {
-            setTimeout(() => {
-                setBanner([false, -1, ""]);
-                if (Notification.permission === 'granted') {
-                new Notification('Action Confirmed', {
-                    body: 'Your action was successfully completed!',
-                    icon: './media/icons/success.svg',
+            // Mirror the in-app toast to the OS notification center, but only when the
+            // app is backgrounded — foreground users already see the on-screen banner.
+            if (
+                typeof Notification !== 'undefined' &&
+                Notification.permission === 'granted' &&
+                document.visibilityState !== 'visible'
+            ) {
+                const titles = ['Success', 'Notice', 'Error'];
+                new Notification(titles[banner[1]] || 'Notification', {
+                    body: banner[2],
+                    icon: `${process.env.PUBLIC_URL || ''}/logo192.png`,
+                    tag: 'ims-app',
                 });
-                }
-            }, 3500);
+            }
+            const timer = setTimeout(() => setBanner([false, -1, ""]), 3500);
+            return () => clearTimeout(timer);
         }
     }, [banner]);
 
@@ -136,77 +114,15 @@ export default function App() {
             setLoading(false);
         });
     };
+
     useEffect(() => {
         if (DB_URL.length > 0 && !signedIn) {
-            async function signIn() {
-                await Promise.all([
-                    toggleSignedIn(true),
-                    setPage(0),
-                    setCollection("Dashboard"),
-                    localStorage.setItem('DB_URL', DB_URL)
-                ]);
-            }
-            signIn();
+            toggleSignedIn(true);
+            setPage(0);
+            setCollection("Dashboard");
+            localStorage.setItem('DB_URL', DB_URL);
         }
     }, [DB_URL, signedIn]);
-
-    useEffect(() => {
-        if (page === 0) {
-            setLoading(true);
-            const marketData = JSON.parse(localStorage.getItem("wMarkets") || "[]");
-            const prodSoldList = marketData.flatMap(m =>
-                m.products.map(p => ({
-                    name: p.name,
-                    sold: Math.max(0, p.countAllocated - p.countRemaining)
-                }))
-            );
-
-            const prodTotals = [];
-            for (let p of prodSoldList) {
-                const existing = prodTotals.find(x => x.name === p.name);
-                if (existing) {
-                    existing.sold += p.sold;
-                } else {
-                    prodTotals.push({ ...p });
-                }
-            }
-
-            prodTotals.sort((a, b) => b.sold - a.sold || a.name.localeCompare(b.name));
-            // const top5 = prodTotals.slice(0, 5).map(p => (
-            //     <div className="tr" key={p.name + p.sold}>
-            //         <div className="td">{p.name}</div>
-            //         <div className="td">{p.sold}</div>
-            //     </div>
-            // ));
-            // setBestSellers(top5);
-
-            const marketList = marketData.map(m => ({
-                name: m.name,
-                date: m.date
-            }));
-            marketList.sort((a, b) => {
-                const D1 = new Date(a.date);
-                const D2 = new Date(b.date);
-                if (D1.getTime() === D2.getTime()) {
-                    return a.name.localeCompare(b.name);
-                }
-                return D2 - D1;
-            });
-
-            // setRecentMarkets(
-            //     marketList.slice(0, 5).map(m => {
-            //         const D = new Date(m.date);
-            //         return (
-            //             <div className="tr" key={m.name + m.date}>
-            //                 <div className="td">{m.name}</div>
-            //                 <div className="td">{`${String(D.getMonth() + 1).padStart(2, "0")}/${String(D.getDate()).padStart(2, "0")}/${D.getFullYear()}`}</div>
-            //             </div>
-            //         );
-            //     })
-            // );
-            setLoading(false);
-        }
-    }, [page]);
 
     const fetchAndStoreData = async (endpoint, itemKey) => {
         try {
@@ -238,15 +154,10 @@ export default function App() {
             setLoading(true);
             await resetLocalData(); // Wait for fetches + localStorage writes to finish
 
-            const iProducts = JSON.parse(localStorage.getItem("iProducts"));
-            const wProducts = JSON.parse(localStorage.getItem("wProducts"));
-            const iMarkets = JSON.parse(localStorage.getItem("iMarkets"));
-            const wMarkets = JSON.parse(localStorage.getItem("wMarkets"));
-
-            setImageProducts(iProducts);
-            setWorkingProducts(wProducts);
-            setImageMarkets(iMarkets);
-            setWorkingMarkets(wMarkets);
+            setImageProducts(JSON.parse(localStorage.getItem("iProducts")));
+            setWorkingProducts(JSON.parse(localStorage.getItem("wProducts")));
+            setImageMarkets(JSON.parse(localStorage.getItem("iMarkets")));
+            setWorkingMarkets(JSON.parse(localStorage.getItem("wMarkets")));
 
             setBanner([true, 0, "Download Sync completed successfully!"]);
             setLoading(false);
@@ -255,7 +166,7 @@ export default function App() {
 
     // Utility to find differences between imageData and workingData arrays by _id
     function diffItems(imageData, workingData) {
-    // Create maps keyed by _id or _tempid
+        // Create maps keyed by _id or _tempid
         const imageMap = new Map(
             imageData.map(item => [item._id || item._tempid, item])
         );
@@ -300,13 +211,11 @@ export default function App() {
         try {
             // Diff for Products
             const productDiff = diffItems(imageProducts || [], workingProducts || []);
-            console.log(productDiff);
             // Handle added products
             for (const product of productDiff.added) {
                 if (product._tempid) {
                     delete product._tempid;
                 }
-                console.log(product);
                 await axios.post(`${DB_URL}/addProducts`, product);
             }
             // Handle updated products (send only changed fields)
@@ -319,23 +228,19 @@ export default function App() {
                     }
                 }
                 changedFields._id = product._id;
-                console.log(changedFields);
                 await axios.put(`${DB_URL}/updateProducts`, changedFields);
             }
             // Handle deleted products (soft delete)
             for (const product of productDiff.deleted) {
-                console.log(product);
                 await axios.put(`${DB_URL}/deleteProduct`, { _id: product._id });
             }
 
             // Diff for Markets
             const marketDiff = diffItems(imageMarkets || [], workingMarkets || []);
-            console.log(marketDiff);
             for (const market of marketDiff.added) {
                 if (market._tempid) {
                     delete market._tempid;
                 }
-                console.log(market);
                 await axios.post(`${DB_URL}/addMarkets`, market);
             }
             for (const market of marketDiff.updated) {
@@ -347,11 +252,9 @@ export default function App() {
                     }
                 }
                 changedFields._id = market._id;
-                console.log(changedFields);
                 await axios.put(`${DB_URL}/updateMarkets`, changedFields);
             }
             for (const market of marketDiff.deleted) {
-                console.log(market);
                 await axios.put(`${DB_URL}/deleteMarket`, { _id: market._id });
             }
 
@@ -372,6 +275,17 @@ export default function App() {
         }
     };
 
+    const handleLogout = () => {
+        setPage(-1);
+        setDB_URL("");
+        localStorage.removeItem('DB_URL');
+        localStorage.removeItem('iProducts');
+        localStorage.removeItem('wProducts');
+        localStorage.removeItem('iMarkets');
+        localStorage.removeItem('wMarkets');
+        toggleSignedIn(false);
+        toggleModalOpen(false);
+    };
 
     if (!signedIn) {
         return (
@@ -382,129 +296,116 @@ export default function App() {
         );
     }
 
-    const Dashboard = () => {
-        return (
-            <>
-                <main>
-                    <h1>{collection}</h1>
-                    <div id="settings" onClick={() => toggleModalOpen(true)}></div>
-                    <div id="dashboard">
-                        {/* Optional widgets */}
-                        <div className='btnGroup'>
-                            <div><button onClick={downloadSync}>Download Sync</button></div>
-                            <div><button onClick={uploadSync}>Upload Sync</button></div>
-                        </div>
-                    </div>
-                </main>
-                {modalOpen && (
-                    <>
-                        <div className="overlay"></div>
-                        <div id='modalWrap'>
-                            <div id="modal">
-                                <h2>McCarty Farm Inventory Management System</h2>
-                                <div className='closeBtn' onClick={() => toggleModalOpen(false)}>
-                                    <div></div>
-                                    <div></div>
-                                </div>
-                                <h3>Developer: Cameron McCarty</h3>
-                                <div id='logout' onClick={async () => {
-                                    await Promise.all([
-                                        setPage(-1),
-                                        setDB_URL(""),
-                                        localStorage.removeItem('DB_URL'),
-                                        localStorage.removeItem('iProducts'),
-                                        localStorage.removeItem('wProducts'),
-                                        localStorage.removeItem('iMarkets'),
-                                        localStorage.removeItem('wMarkets'),
-                                        toggleSignedIn(false),
-                                        toggleModalOpen(false)
-                                    ]);
-                                }}></div>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </>
-        );
-    };
-
-    const List = () => {
-        return (
-            <>
-                <main>
-                    {loading ? <Loading /> : (
-                        <>
-                            <div id="title">
-                                <h1>View {collection}</h1>
-                                <div id="refresh" className="icon" onClick={() => setRefresh(true)}></div>
-                            </div>
-                            <div id='list'>
-                                <div className='listItem' onClick={() => toggleAddModal(true)}>
-                                    <div className='add'></div>
-                                    <h3>Add Item</h3>
-                                </div>
-                                {viewData.map((item) => (
-                                    collection === "Products" ? (
-                                        <ListItem
-                                            collection={collection}
-                                            DB_URL={DB_URL}
-                                            name={item.name}
-                                            category={item.category}
-                                            taxable={item.isTaxable ? "Yes" : "No"}
-                                            count={item.count}
-                                            key={item._id || item._tempid}
-                                            _id={item._id}
-                                            setRefresh={setRefresh}
-                                            banner={banner}
-                                            setBanner={setBanner}
-                                        />
-                                    ) : (
-                                        <ListItem
-                                            collection={collection}
-                                            DB_URL={DB_URL}
-                                            name={item.name}
-                                            date={item.date}
-                                            products={item.products}
-                                            key={item._id || item._tempid}
-                                            _id={item._id}
-                                            setRefresh={setRefresh}
-                                            banner={banner}
-                                            setBanner={setBanner}
-                                        />
-                                    )
-                                ))}
-
-                            </div>
-                        </>
-                    )}
-                </main>
-                <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
-            </>
-        );
-    }
-
-    const Report = () => {
-        return (
-            <main>
-                <h1>Generate Report</h1>
-                <ReportMenu DB_URL={DB_URL} />
-            </main>
-        );
-    }
-
     return (
         <div className="App">
             <Header nav={true} toggleSignedIn={toggleSignedIn} setPage={setPage} setCollection={setCollection} activeNav={activeNav} setActiveNav={setActiveNav} activeSubNav={activeSubNav} setActiveSubNav={setActiveSubNav} />
             <div className="pageWrap">
                 { loading ? <Loading />
-                : page === 0 ? <Dashboard />
-                : page === 1 ? <List />
-                : page === 2 ? <Report />
+                : page === 0 ? <Dashboard collection={collection} modalOpen={modalOpen} toggleModalOpen={toggleModalOpen} downloadSync={downloadSync} uploadSync={uploadSync} handleLogout={handleLogout} />
+                : page === 1 ? <List loading={loading} collection={collection} DB_URL={DB_URL} viewData={viewData} setRefresh={setRefresh} toggleAddModal={toggleAddModal} addModal={addModal} banner={banner} setBanner={setBanner} />
+                : page === 2 ? <ReportView DB_URL={DB_URL} />
                 : <Error404 /> }
             </div>
             {banner[0] &&
                 <Banner active={banner[0]} type={banner[1]} msg={banner[2]} />
             }
         </div>
+    );
+}
+
+function Dashboard({ collection, modalOpen, toggleModalOpen, downloadSync, uploadSync, handleLogout }) {
+    return (
+        <>
+            <main>
+                <h1>{collection}</h1>
+                <div id="settings" onClick={() => toggleModalOpen(true)}></div>
+                <div id="dashboard">
+                    {/* Optional widgets */}
+                    <div className='btnGroup'>
+                        <div><button onClick={downloadSync}>Download Sync</button></div>
+                        <div><button onClick={uploadSync}>Upload Sync</button></div>
+                    </div>
+                </div>
+            </main>
+            {modalOpen && (
+                <>
+                    <div className="overlay"></div>
+                    <div id='modalWrap'>
+                        <div id="modal">
+                            <h2>McCarty Farm Inventory Management System</h2>
+                            <div className='closeBtn' onClick={() => toggleModalOpen(false)}>
+                                <div></div>
+                                <div></div>
+                            </div>
+                            <h3>Developer: Cameron McCarty</h3>
+                            <div id='logout' onClick={handleLogout}></div>
+                        </div>
+                    </div>
+                </>
+            )}
+        </>
+    );
+}
+
+function List({ loading, collection, DB_URL, viewData, setRefresh, toggleAddModal, addModal, banner, setBanner }) {
+    return (
+        <>
+            <main>
+                {loading ? <Loading /> : (
+                    <>
+                        <div id="title">
+                            <h1>View {collection}</h1>
+                            <div id="refresh" className="icon" onClick={() => setRefresh(true)}></div>
+                        </div>
+                        <div id='list'>
+                            <div className='listItem' onClick={() => toggleAddModal(true)}>
+                                <div className='add'></div>
+                                <h3>Add Item</h3>
+                            </div>
+                            {viewData.map((item) => (
+                                collection === "Products" ? (
+                                    <ListItem
+                                        collection={collection}
+                                        DB_URL={DB_URL}
+                                        name={item.name}
+                                        category={item.category}
+                                        taxable={item.isTaxable ? "Yes" : "No"}
+                                        count={item.count}
+                                        key={item._id || item._tempid}
+                                        _id={item._id || item._tempid}
+                                        setRefresh={setRefresh}
+                                        banner={banner}
+                                        setBanner={setBanner}
+                                    />
+                                ) : (
+                                    <ListItem
+                                        collection={collection}
+                                        DB_URL={DB_URL}
+                                        name={item.name}
+                                        date={item.date}
+                                        products={item.products}
+                                        key={item._id || item._tempid}
+                                        _id={item._id || item._tempid}
+                                        setRefresh={setRefresh}
+                                        banner={banner}
+                                        setBanner={setBanner}
+                                    />
+                                )
+                            ))}
+                        </div>
+                    </>
+                )}
+            </main>
+            <AddModal toggleAddModal={toggleAddModal} addModal={addModal} collection={collection} DB_URL={DB_URL} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
+        </>
+    );
+}
+
+function ReportView({ DB_URL }) {
+    return (
+        <main>
+            <h1>Generate Report</h1>
+            <ReportMenu DB_URL={DB_URL} />
+        </main>
     );
 }

@@ -76,8 +76,8 @@ export default function AddModal({ toggleAddModal, addModal, collection, setRefr
             }
             const allProducts = JSON.parse(localStorage.getItem("wProducts") || "[]");
             const newMarket = {
-                tempid: "temp_" + new Date().toISOString(),
-                name: (markOpt?.value === NEW_FLAG ? markName : markOpt?.value),
+                _tempid: "temp_" + new Date().toISOString(),
+                name: newMarketName,
                 date: markDate,
                 products: marketProducts.map(p => {
                     const matched = allProducts.find(prod => prod.name === p.name);

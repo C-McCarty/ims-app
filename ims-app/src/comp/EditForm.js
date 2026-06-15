@@ -91,7 +91,6 @@ export default function EditForm({
             const markets = JSON.parse(localStorage.getItem("wMarkets") || "[]");
             const currentMarket = markets.find((m) => m._id === _id || m.tempid === _id || m._tempid === _id);
             setTempMarkProdList(currentMarket?.products || []);
-            console.log("Temp product list set to:", currentMarket?.products || []);
         }
     }, [productManagementModal, _id]);
 
@@ -107,7 +106,7 @@ export default function EditForm({
             const updated = stored.map((item) => ((item._id === _id) || (item._tempid === _id)) ? {
                 ...item,
                 name: prodName,
-                category: prodCategoryOption === NEW_FLAG ? prodNewCategory : prodCategoryOption.value,
+                category: prodCategoryOption === NEW_FLAG ? prodNewCategory.trim() : prodCategoryOption,
                 isTaxable: prodIsTaxable === 1,
                 count: parseInt(prodCount),
             } : item );
@@ -116,7 +115,6 @@ export default function EditForm({
         } else if (collection === "Markets") {
             // Always use the latest tempMarkProdList for products
             const productsToSave = tempMarkProdList.filter(p => !p.deleted);
-            console.log("Saving products for market:", productsToSave);
             const stored = JSON.parse(localStorage.getItem("wMarkets") || "[]");
             const updated = stored.map((item) => ((item._id === _id) || (item._tempid === _id)) ? {
                 ...item,
@@ -140,12 +138,12 @@ export default function EditForm({
     const handleDelete = async () => {
         if (collection === "Products") {
             const data = JSON.parse(localStorage.getItem("wProducts") || "[]");
-            const updated = data.filter((p) => p._id !== _id);
+            const updated = data.filter((p) => (p._id || p._tempid) !== _id);
             await localStorage.setItem("wProducts", JSON.stringify(updated));
             setBanner([true, 2, `${name} deleted.`]);
         } else if (collection === "Markets") {
             const data = JSON.parse(localStorage.getItem("wMarkets") || "[]");
-            const updated = data.filter((m) => m._id !== _id);
+            const updated = data.filter((m) => (m._id || m._tempid) !== _id);
             await localStorage.setItem("wMarkets", JSON.stringify(updated));
             setBanner([true, 2, `${name} deleted.`]);
         }
@@ -154,7 +152,9 @@ export default function EditForm({
     };
 
     // --- Product field handlers ---
-    const handleProdCategoryChange = (option) => setProdCategoryOption(option);
+    // Store the option's value (not the option object) so it stays comparable to
+    // NEW_FLAG and to the existing category string loaded into state.
+    const handleProdCategoryChange = (option) => setProdCategoryOption(option.value);
     const handleProdNewCategoryChange = (e) => setProdNewCategory(e.target.value);
     const handleProdIsTaxableChange = (option) => setProdIsTaxable(option.value);
     const handleProdCountChange = (e) => setProdCount(e.target.value);
@@ -260,11 +260,11 @@ export default function EditForm({
                     <form id="editForm" className="popupForm" onSubmit={handleSubmit}>
                         {collection === "Products" ? (
                             <>
-                                <div>
+                                <div className="formInputRow">
                                     <label htmlFor="prodName">Product Name:</label>
                                     <input type="text" name="prodName" id="prodName" value={prodName} onChange={handleProdNameChange} required />
                                 </div>
-                                <div>
+                                <div className="formInputRow">
                                     <label htmlFor="prodCategory">Product Category:</label>
                                     {loading ? (
                                         <Loading />
@@ -273,18 +273,18 @@ export default function EditForm({
                                             className="select"
                                             options={prodOptions}
                                             onChange={handleProdCategoryChange}
-                                            value={prodOptions.find(opt => (prodCategoryOption === NEW_FLAG) ? false : opt.value === prodCategoryOption.value || opt.value === prodCategoryOption)}
+                                            value={prodOptions.find(opt => opt.value === prodCategoryOption) || null}
                                             required
                                         />
                                     )}
                                 </div>
                                 {prodCategoryOption === NEW_FLAG && (
-                                    <div>
+                                    <div className="formInputRow">
                                         <label htmlFor="prodNewCategory">New Category:</label>
                                         <input type="text" name="prodNewCategory" id="prodNewCategory" value={prodNewCategory} onChange={handleProdNewCategoryChange} required />
                                     </div>
                                 )}
-                                <div>
+                                <div className="formInputRow">
                                     <label htmlFor="prodTaxable">Taxable?</label>
                                     <Select
                                         className="select"
@@ -294,7 +294,7 @@ export default function EditForm({
                                         required
                                     />
                                 </div>
-                                <div>
+                                <div className="formInputRow">
                                     <label htmlFor="prodCount">Product Count:</label>
                                     <input type="number" id="prodCount" min={0} max={100} step={1} value={prodCount} onChange={handleProdCountChange} required />
                                 </div>
@@ -313,7 +313,7 @@ export default function EditForm({
                                     <label htmlFor="markDate">Market Date:</label>
                                     <input type="date" name="markDate" id="markDate" value={markDate} onChange={handleMarkDateChange} required />
                                 </div>
-                                <div>
+                                <div className="formInputRow">
                                     <button type="button" onClick={() => { setLoading(true); setProductManagementModal(true); }}>Manage Products</button>
                                 </div>
                                 {productManagementModal && (

@@ -1,6 +1,13 @@
 import { useState } from "react";
 import EditForm from "./EditForm";
 
+// Safely format a date as YYYY-MM-DD, returning "" for missing/invalid values
+// instead of throwing from toISOString().
+function formatDate(date) {
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+}
+
 export default function ListItem({collection, DB_URL, name, category=null, taxable=null, count=null, date=null, products=null, _id, setRefresh, banner, setBanner}) {
     // Control display of ListItem details
     const [details, toggleDetails] = useState(false);
@@ -8,7 +15,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
     const [editForm, toggleEditForm] = useState(false);
 
     // Product list items
-    if (collection == "Products") {
+    if (collection === "Products") {
         return (
             <div className='listItem'>
                 <div className="listItemMain">
@@ -35,12 +42,12 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
         );
     }
     // Market list items
-    else if (collection == "Markets") {
+    else if (collection === "Markets") {
         return (
             <div className='listItem'>
                 <div className="listItemMain">
                     <div>
-                        <h4>{new Date(date).toISOString().split("T")[0]}</h4>
+                        <h4>{formatDate(date)}</h4>
                         <h3>{name}</h3>
                     </div>
                     <div className='details' onClick={()=>{toggleDetails(!details)}}></div>
@@ -76,7 +83,7 @@ export default function ListItem({collection, DB_URL, name, category=null, taxab
                         </div>
                     </div>
                 </div>
-                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={new Date(date).toISOString().split("T")[0].trim("")} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
+                <EditForm collection={collection} DB_URL={DB_URL} name={name} date={formatDate(date)} products={products} editForm={editForm} toggleEditForm={toggleEditForm} _id={_id} setRefresh={setRefresh} banner={banner} setBanner={setBanner} />
             </div>
         );
     }

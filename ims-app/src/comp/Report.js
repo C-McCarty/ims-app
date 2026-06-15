@@ -1,171 +1,153 @@
 import { useState, useEffect } from "react";
 import Loading from "./Loading";
 
-export default function Report({type, data, query, toggleReport}) {
+// Units sold for a market product, clamped at 0 (remaining should never exceed allocated)
+const soldOf = p => (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0);
+
+// Format a date value as MM<sep>DD<sep>YYYY in UTC
+const formatDate = (value, sep = "/") => {
+    const D = new Date(value);
+    return `${String(D.getUTCMonth() + 1).padStart(2, "0")}${sep}${String(D.getUTCDate()).padStart(2, "0")}${sep}${String(D.getUTCFullYear())}`;
+};
+
+export default function Report({ type, data, query, toggleReport }) {
     // State variables
     const [loading, setLoading] = useState(true);
     const [filteredData, setFilteredData] = useState([]);
-    const [bestSellers, setBestSellers] = useState("");
-    const [markProdTable, setMarkProdTable] = useState(<></>);
-    const [markProdData, setMarkProdData] = useState([]);
+    const [bestSellers, setBestSellers] = useState([]);
+    const [markProdRows, setMarkProdRows] = useState([]);
 
-    // useEffect
     useEffect(() => {
-        // Search by Date
+        // Filter the markets in scope for this report
+        let list;
         if (type === 0) {
-            const list = data.filter(x => {
+            // Search by Date
+            list = data.filter(x => {
                 const d = new Date(x.date).toISOString().split("T")[0];
                 return (d >= query[0] && d <= query[1]);
             });
-            setFilteredData(list);
-            analyze(list);
+        } else {
+            // Search by Name
+            list = data.filter(x => (x.name === query));
         }
-        // Search by Name
-        else if (type === 1) {
-            const list = data.filter(x => (x.name === query));
-            setFilteredData(list);
-            analyze(list);
-        }
-    }, []);
-    useEffect(() => setLoading(false), [type, data]);
+        setFilteredData(list);
 
-    const analyze = (data) => {
-        // Get Product names and how much was sold
-        const prodSoldList = data.flatMap(m => m.products.map(p => ({
+        // Flatten to one row per product sold at each market
+        const prodSoldList = list.flatMap(m => m.products.map(p => ({
             name: p.name,
-            sold: (p.countAllocated >= p.countRemaining ? p.countAllocated - p.countRemaining : 0),
+            sold: soldOf(p),
             marketName: m.name,
             date: m.date
         })));
-        setMarkProdData(prodSoldList);
+
+        // Combine sold amount for each Product, then sort by most sold then by name
         const prodTotals = [];
-        // Combine sold amount for each Product
-        for (let i = 0; i < prodSoldList.length; i++) {
-            const prod = prodTotals.find(b => prodSoldList[i].name === b.name);
-            if (prod) { prod.sold += prodSoldList[i].sold; }
-            else { prodTotals.push({...prodSoldList[i]}); }
+        for (const entry of prodSoldList) {
+            const prod = prodTotals.find(b => entry.name === b.name);
+            if (prod) { prod.sold += entry.sold; }
+            else { prodTotals.push({ name: entry.name, sold: entry.sold }); }
         }
-        // Sort by most sold then by name
-        prodTotals.sort((a, b) => {
-            if (a.sold === b.sold) {
-                return a.name.localeCompare(b.name);
-            }
-            return b.sold - a.sold;
-        });
-        // Create a table list of the top 5 Products sold
-        const top5 = prodTotals.map(p => {
-            return (
-                <div className="tr" key={p.name+p.sold}>
-                    <div className="td">{p.name}</div>
-                    <div className="td">{p.sold}</div>
-                </div>
-            );
-        }).slice(0,5);
-        setBestSellers(top5);
-        // Generate table of all Products sold per Market
-        prodSoldList.sort((a, b) => {
+        prodTotals.sort((a, b) => (a.sold === b.sold ? a.name.localeCompare(b.name) : b.sold - a.sold));
+        setBestSellers(prodTotals.slice(0, 5));
+
+        // Sort sold-per-market rows: by date (newest first), then market name, then product name
+        const sortedRows = [...prodSoldList].sort((a, b) => {
             if (a.date === b.date) {
                 if (a.marketName === b.marketName) {
-                    // Sort third by Product name
                     return a.name.localeCompare(b.name);
                 }
-                // Sort second by Market name
                 return a.marketName.localeCompare(b.marketName);
             }
-            // Sort first by Market date
-            return (new Date(b.date) - new Date(a.date));
+            return new Date(b.date) - new Date(a.date);
         });
-        setMarkProdTable(prodSoldList.map(p => {
-            const D = new Date(p.date);
-            return (
-                <div className="tr">
-                    <div className="td">{p.name}</div>
-                    <div className="td">{p.marketName}</div>
-                    <div className="td">{`${(String(D.getUTCMonth() + 1)).padStart(2, "0")}/${String(D.getUTCDate()).padStart(2, "0")}/${String(D.getUTCFullYear())}`}</div>
-                    <div className="td">{p.sold}</div>
-                </div>
-            );
-        }));
-    }
-    
+        setMarkProdRows(sortedRows);
+
+        setLoading(false);
+    }, []);
+
+    // Total units sold across every market in scope
+    const totalSold = filteredData.reduce(
+        (sum, m) => sum + m.products.reduce((s, p) => s + soldOf(p), 0),
+        0
+    );
+
     // Export sales metrics to CSV
     const exportCSV = () => {
-        const csvData = `Product Name,Market Name,Market Date,Count Sold\n` + markProdData.map(p => {
-            const D = new Date(p.date);
-            const DATE_STRING = `${(String(D.getUTCMonth() + 1)).padStart(2, "0")}/${String(D.getUTCDate()).padStart(2, "0")}/${String(D.getUTCFullYear())}`;
-            return `${p.name},${p.marketName},${DATE_STRING},${p.sold}\n`;
-        }).join("");
-        const BLOB = new Blob([csvData], {type: "text/csv"});
+        const csvData = `Product Name,Market Name,Market Date,Count Sold\n` + markProdRows.map(p =>
+            `${p.name},${p.marketName},${formatDate(p.date)},${p.sold}\n`
+        ).join("");
+        const BLOB = new Blob([csvData], { type: "text/csv" });
         const CSV_URL = URL.createObjectURL(BLOB);
         const CSV_LINK = document.createElement("a");
         CSV_LINK.href = CSV_URL;
-        if (type === 1) {
-            CSV_LINK.download = `${query}.csv` || "data.csv";
-        } else {
-            const D1 = new Date(query[0]);
-            const DATE_STRING_1 = `${(String(D1.getUTCMonth() + 1)).padStart(2, "0")}.${String(D1.getUTCDate()).padStart(2, "0")}.${String(D1.getUTCFullYear())}`;
-            const D2 = new Date(query[1]);
-            const DATE_STRING_2 = `${(String(D2.getUTCMonth() + 1)).padStart(2, "0")}.${String(D2.getUTCDate()).padStart(2, "0")}.${String(D2.getUTCFullYear())}`;
-            CSV_LINK.download = `${DATE_STRING_1}-${DATE_STRING_2}.csv` || "data.csv";
-        }
+        CSV_LINK.download = type === 1
+            ? `${query || "data"}.csv`
+            : `${formatDate(query[0], ".")}-${formatDate(query[1], ".")}.csv`;
         document.body.appendChild(CSV_LINK);
         CSV_LINK.click();
         document.body.removeChild(CSV_LINK);
         URL.revokeObjectURL(CSV_URL);
-    }
+    };
 
     return (
         <div id="reportWrap">
             <div id="report">
-                <div className="closeBtn" onClick={() => {toggleReport(false)}}><div></div><div></div></div>
+                <div className="closeBtn" onClick={() => { toggleReport(false); }}><div></div><div></div></div>
                 {loading ? <Loading /> :
-                <div>
-                    <div className="reportHeader">
-                        {type === 1 ?
-                            <>
-                                <h2>Report </h2>
-                                <h3>{`("${query}")`}</h3>
-                            </> :
-                            <>
-                                <h2>Report</h2>
-                                <h3>{`(${String(new Date(query[0]).getUTCMonth() + 1).padStart(2, "0")}/${String(new Date(query[0]).getUTCDate()).padStart(2, "0")}/${new Date(query[0]).getUTCFullYear()} to ${String(new Date(query[1]).getUTCMonth() + 1).padStart(2, "0")}/${String(new Date(query[1]).getUTCDate()).padStart(2, "0")}/${new Date(query[1]).getUTCFullYear()})`}</h3>
-                            </>
-                        }
-                    </div>
-                    <h3>Number of Markets: <span className="data">{filteredData.length}</span></h3>
-                    <h3>Total Products Sold: <span className="data">{
-                        filteredData.map(m => {
-                            const soldProds = m.products.map(p => p.countAllocated - p.countRemaining);
-                            return (soldProds.reduce((a, b) => a + b, 0));
-                        }).reduce((a, b) => a + b, 0)
-                    }</span></h3>
+                    <div>
+                        <div className="reportHeader">
+                            {type === 1 ?
+                                <>
+                                    <h2>Report </h2>
+                                    <h3>{`("${query}")`}</h3>
+                                </> :
+                                <>
+                                    <h2>Report</h2>
+                                    <h3>{`(${formatDate(query[0])} to ${formatDate(query[1])})`}</h3>
+                                </>
+                            }
+                        </div>
+                        <h3>Number of Markets: <span className="data">{filteredData.length}</span></h3>
+                        <h3>Total Products Sold: <span className="data">{totalSold}</span></h3>
 
-                    <h3>Top Selling Products:</h3>
-                    <div className="table two">
-                        <div className="tr thead">
-                            <div className="th">Product Name</div>
-                            <div className="th">Sold</div>
+                        <h3>Top Selling Products:</h3>
+                        <div className="table two">
+                            <div className="tr thead">
+                                <div className="th">Product Name</div>
+                                <div className="th">Sold</div>
+                            </div>
+                            <div className="tbody">
+                                {bestSellers.map(p => (
+                                    <div className="tr" key={p.name}>
+                                        <div className="td">{p.name}</div>
+                                        <div className="td">{p.sold}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="tbody">
-                            {bestSellers}
+                        <h3>Sales by Date:</h3>
+                        <div className="table reportSales">
+                            <div className="tr thead">
+                                <div className="th">Product Name</div>
+                                <div className="th">Market Name</div>
+                                <div className="th">Date</div>
+                                <div className="th">Sold</div>
+                            </div>
+                            <div className="tbody">
+                                {markProdRows.map((p, i) => (
+                                    <div className="tr" key={`${p.date}-${p.marketName}-${p.name}-${i}`}>
+                                        <div className="td">{p.name}</div>
+                                        <div className="td">{p.marketName}</div>
+                                        <div className="td">{formatDate(p.date)}</div>
+                                        <div className="td">{p.sold}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="reportBtnWrap">
+                            <button type="button" onClick={exportCSV}>Export CSV</button>
                         </div>
                     </div>
-                    <h3>Sales by Date:</h3>
-                    <div className="table reportSales">
-                        <div className="tr thead">
-                            <div className="th">Product Name</div>
-                            <div className="th">Market Name</div>
-                            <div className="th">Date</div>
-                            <div className="th">Sold</div>
-                        </div>
-                        <div className="tbody">
-                            {markProdTable}
-                        </div>
-                    </div>
-                    <div className="reportBtnWrap">
-                        <button type="button" onClick={exportCSV}>Export CSV</button>
-                    </div>
-                </div>
                 }
             </div>
         </div>

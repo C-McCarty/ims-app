@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import Select from "react-select";
 import Report from "./Report";
-import axios from "axios";
-import Loading from "./Loading";
 
-export default function ReportMenu({ DB_URL }) {
+export default function ReportMenu() {
     // State variables
     const [reportType, setReportType] = useState(-1);
     const [loading, setLoading] = useState(false);
     const [report, toggleReport] = useState(false);
     const [marketData, setMarketData] = useState([]);
-    
+
     const [fromDate, setFromDate] = useState("");
     const handleFromDateChange = e => setFromDate(e.target.value);
     const [toDate, setToDate] = useState("");
@@ -18,7 +16,7 @@ export default function ReportMenu({ DB_URL }) {
     const [marketNames, setMarketNames] = useState([]);
     const [markName, setMarkName] = useState("");
     const handleMarketNameChange = option => setMarkName(option.value);
-    
+
     // Handlers
     const handleTypeChange = option => {
         setLoading(true);
@@ -30,31 +28,23 @@ export default function ReportMenu({ DB_URL }) {
     }
     const handleSubmit = e => {
         e.preventDefault();
-        axios.get(`${DB_URL}/getMarkets`).then(res => {
-            setMarketData(res.data);
-            toggleReport(true);
-        }).catch(err => {
-            console.error(err);
-        });
+        // Reports run against the local working copy so they work offline too
+        const markets = JSON.parse(localStorage.getItem("wMarkets") || "[]");
+        setMarketData(markets);
+        toggleReport(true);
     }
 
     // useEffect methods
     useEffect(() => {
         if (loading) {
-            if (reportType == 1) {
-                axios.get(`${DB_URL}/getMarkets`).then(res => {
-                    let list = res.data.map(m => (m.name));
-                    list = new Set(list);
-                    list = [...list];
-                    list = list.map(name => ({value: name, label: name}));
-                    list.sort((a, b) => a.value.localeCompare(b.value));
-                    setMarketNames(list);
-                }).catch(err => {
-                    console.error(err);
-                }).finally(() => setLoading(false));
-            } else {
-                setLoading(false);
+            if (reportType === 1) {
+                const markets = JSON.parse(localStorage.getItem("wMarkets") || "[]");
+                const list = [...new Set(markets.map(m => m.name))]
+                    .map(name => ({ value: name, label: name }))
+                    .sort((a, b) => a.value.localeCompare(b.value));
+                setMarketNames(list);
             }
+            setLoading(false);
         }
     }, [loading]);
 
@@ -66,7 +56,7 @@ export default function ReportMenu({ DB_URL }) {
                     <Select className="reportSelect" options={[{value: 0, label: "By Date"},{value: 1, label: "By Name"}]} onChange={handleTypeChange} required />
                 </div>
                 {/* Report by Date */}
-                {reportType === 0 ? 
+                {reportType === 0 ?
                 <>
                     <div>
                         <label htmlFor="fromDate">From Date:</label>
@@ -87,7 +77,7 @@ export default function ReportMenu({ DB_URL }) {
                     <button type="submit">Generate</button>
                 </div>
             </form>
-            {report ? 
+            {report ?
                 <Report type={reportType} data={marketData} query={reportType === 0 ? [fromDate, toDate] : markName} toggleReport={toggleReport} />
             : null}
         </div>

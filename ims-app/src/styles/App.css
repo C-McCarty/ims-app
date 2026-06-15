@@ -1,9 +1,7 @@
-:root {
-    --main: #08f;
-}
 html {
     background-color: var(--main);
     height: 100vh;
+    height: 100dvh;
 }
 html, body, #root, .App {
     overflow: hidden;
@@ -14,17 +12,25 @@ html, body, #root, .App {
     margin-top: 5vh;
     display: flex;
     flex-wrap: wrap;
-    width: 100vw;
+    width: 100%;
     height: 95vh;
+    height: 95dvh;
     justify-content: center;
     align-items: start;
-    background-color: #FFF;
+    background-color: var(--surface);
 }
-.App:has(#subNav) main { height: 80vh; }
+.App:has(#subNav) main { height: 80vh; height: 80dvh; }
+.pageWrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
 main {
-    width: 100vw;
+    width: 100%;
+    max-width: 1100px;
     height: 85vh;
-    background-color: #FFF;
+    height: 85dvh;
+    background-color: var(--surface);
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -41,8 +47,18 @@ main > form {
 
 input {
     padding: 0.5rem;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text);
+    transition: border-color var(--speed), box-shadow var(--speed);
+}
+input:hover { border-color: #b9c7d4; }
+input:focus,
+input:focus-visible {
+    outline: none;
+    border-color: var(--main);
+    box-shadow: 0 0 0 3px var(--main-light);
 }
 .btnGroup {
     display: flex;
@@ -52,31 +68,49 @@ input {
     align-items: center;
 }
 button {
-    padding: 1rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding: 0.85rem 2rem;
     font-size: 1rem;
-    border-radius: 3rem;
-    height: 5rem;
-    border: 0.25rem solid var(--main);
+    border-radius: var(--radius-pill);
+    min-height: 3.25rem;
+    border: 0.2rem solid var(--main);
     background-color: transparent;
     color: var(--main);
     font-weight: bold;
     cursor: pointer;
     user-select: none;
-    transition: all 0.125s;
+    transition: color var(--speed), background-color var(--speed), box-shadow var(--speed), transform var(--speed);
+}
+button:hover {
+    background-color: var(--main-light);
+    box-shadow: var(--shadow-sm);
 }
 button:active {
     color: #fff;
     background-color: var(--main);
+    transform: translateY(1px);
 }
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: transparent;
+    box-shadow: none;
+}
+/* Destructive action buttons */
+.deleteBtn {
+    border-color: var(--error);
+    color: var(--error);
+}
+.deleteBtn:hover { background-color: #fdeaea; }
+.deleteBtn:active { background-color: var(--error); color: #fff; }
 
 
 /* Dashboard */
 #dashboard {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     height: 65vh;
+    height: 65dvh;
     width: 90%;
 }
 .widget {
@@ -90,20 +124,24 @@ button:active {
 }
 
 #settings {
-    height: 8vh;
-    width: 8vh;
+    height: 3.5rem;
+    width: 3.5rem;
     background-image: url(../media/settings.svg);
     background-repeat: no-repeat;
-    background-size: 80%;
+    background-size: 60%;
     background-position: center;
-    background-color: #FFF;
+    background-color: var(--surface);
     border-radius: 100%;
+    box-shadow: var(--shadow);
     position: absolute;
-    bottom: 1vh;
-    right: 1vh;
+    bottom: 1.5rem;
+    right: 1.5rem;
     z-index: 1000;
     cursor: pointer;
+    transition: transform var(--speed), box-shadow var(--speed);
 }
+#settings:hover { transform: rotate(45deg); box-shadow: var(--shadow-lg); }
+#settings:active { transform: rotate(45deg) scale(0.92); }
 
 #modalWrap {
     position: fixed;
@@ -120,31 +158,38 @@ button:active {
     animation: moveIn 1s;
 }
 #modal {
-    background-color: #FFF;
-    margin-top: 5vh;
-    height: 95vh;
-    padding-top: 35vh;
-    padding-bottom: 35vh;
+    background-color: var(--surface);
+    width: min(92vw, 420px);
+    padding: 3rem 2rem 2.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
     display: flex;
     flex-wrap: wrap;
+    row-gap: 1.5rem;
     justify-content: center;
     align-items: center;
     position: relative;
 }
 .closeBtn {
     position: absolute;
-    top: 1vh;
-    right: 1vh;
-    height: 8vh;
-    width: 8vh;
+    top: 1rem;
+    right: 1rem;
+    height: 2.5rem;
+    width: 2.5rem;
     padding: 0;
     cursor: pointer;
     background-image: url(../media/close.svg);
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 100%;
+    background-size: 90%;
+    background-color: transparent;
     border: none;
+    border-radius: 100%;
+    min-height: 0;
+    transition: background-color var(--speed), transform var(--speed);
 }
+.closeBtn:hover { background-color: var(--surface-2); }
+.closeBtn:active { transform: scale(0.9); background-color: var(--border); }
 
 #modal h2, #modal h3 {
     flex-basis: 100%;
@@ -152,16 +197,20 @@ button:active {
 }
 
 #logout {
-    height: 8vh;
-    width: 8vh;
+    height: 4rem;
+    width: 4rem;
     background-image: url(../media/logout.svg);
     background-repeat: no-repeat;
-    background-size: 80%;
+    background-size: 60%;
     background-position: center;
     background-color: var(--main);
     border-radius: 100%;
     cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform var(--speed), background-color var(--speed), box-shadow var(--speed);
 }
+#logout:hover { background-color: var(--main-dark); box-shadow: var(--shadow-lg); transform: scale(1.05); }
+#logout:active { transform: scale(0.95); }
 
 @keyframes moveIn {
     0% {
@@ -204,24 +253,38 @@ button:active {
 #refresh:active { transform: rotate(180deg); transition: all 0.5s; }
 /* List item styling */
 #list {
-    padding: 1vh;
+    padding: 1rem;
     overflow-y: auto;
     height: 65vh;
+    height: 65dvh;
+    width: 100%;
 }
 .listItem {
-    box-shadow: 0 0 10px #0003;
+    box-shadow: var(--shadow-sm);
     width: 90vw;
-    border-radius: 20px;
-    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 2rem;
+    margin: 0 auto 1.25rem;
+    transition: box-shadow var(--speed), transform var(--speed), border-color var(--speed);
+}
+.listItem:hover {
+    box-shadow: var(--shadow);
+    border-color: #c4d3e1;
+}
+.listItem:has(.add):hover {
+    border-color: var(--main);
+    background-color: var(--main-tint);
+    transform: translateY(-2px);
 }
 .listItemMain {
     flex-basis: 100%;
     display: grid;
-    grid-template-columns: 1fr 6vh 6vh;
+    grid-template-columns: 1fr 3rem 3rem;
+    gap: 0.5rem;
     align-items: center;
     justify-content: space-between;
 }
@@ -230,13 +293,24 @@ button:active {
 }
 .listItemMain .details,
 .listItemMain .edit {
-    height: 5vh;
-    width: 5vh;
+    height: 2.75rem;
+    width: 2.75rem;
     background-image: url(../media/description.svg);
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 80%;
+    background-size: 60%;
+    border-radius: 100%;
     cursor: pointer;
+    justify-self: center;
+    transition: background-color var(--speed), transform var(--speed);
+}
+.listItemMain .details:hover,
+.listItemMain .edit:hover {
+    background-color: var(--main-light);
+}
+.listItemMain .details:active,
+.listItemMain .edit:active {
+    transform: scale(0.9);
 }
 .listItemMain .edit {
     background-image: url(../media/edit.svg);
@@ -320,43 +394,46 @@ button:active {
     margin: 0;
     text-align: center;
 }
-/* Banner Message Styling */
+/* Toast notification styling */
 .banner {
     position: fixed;
-    top: 0vh;
-    margin-top: 6vh;
-    padding: 1rem;
-    width: 90vw;
-    border-radius: 0.5rem;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: calc(8vh + 0.75rem);
+    padding: 0.9rem 1.1rem;
+    width: min(92vw, 30rem);
+    border-radius: var(--radius);
     text-align: left;
     z-index: 1000000;
     font-weight: bold;
-    font-family: "Azeret Mono", "Courier New", Courier, monospace;
+    font-family: var(--mono);
     animation: notify 3.5s ease-in-out;
     opacity: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border: 0.25rem solid #000;
-}
-.banner div:has(.msg) {
-    padding-left: 1rem;
+    gap: 0.85rem;
+    background-color: var(--surface);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    border-left: 0.4rem solid var(--main);
 }
 .banner .msg {
-    color: #000D;
+    color: var(--text);
     flex-grow: 1;
     margin: 0;
     padding: 0;
+    font-size: 0.95rem;
 }
-.banner:has(.success) { background-color: lime; }
-.banner:has(.info) { background-color: gold; }
-.banner:has(.error) { background-color: red; }
+.banner:has(.success) { border-left-color: var(--success); }
+.banner:has(.info) { border-left-color: var(--info); }
+.banner:has(.error) { border-left-color: var(--error); }
 .banner .icon {
-    height: 2rem;
-    width: 2rem;
+    height: 1.75rem;
+    width: 1.75rem;
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 125%;
+    background-size: 100%;
     border-radius: 100%;
     flex-shrink: 0;
 }
@@ -367,20 +444,26 @@ button:active {
 @keyframes notify {
     0% {
         opacity: 0;
-        top: -50vh;
+        transform: translate(-50%, -150%);
     }
-    1% { opacity: 1; }
-    25%, 75% {
-        top: 0vh;
+    8% {
+        opacity: 1;
+        transform: translate(-50%, 0);
     }
-    99% { opacity: 1; }
+    92% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
     100% {
         opacity: 0;
-        top: -50vh;
+        transform: translate(-50%, -150%);
     }
 }
 /* Report Styling */
-#reportMenu { width: 50%; }
+#reportMenu {
+    width: min(90%, 420px);
+    margin: 0 auto;
+}
 #reportMenu form {
     padding: 1rem;
     display: flex;
@@ -421,9 +504,13 @@ button:active {
 }
 #report {
     width: 100%;
-    padding: 1rem;
-    background-color: white;
-    box-shadow: 0 0 10px #0008;
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background-color: var(--surface);
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg);
     position: relative;
 }
 #report .data {
@@ -454,19 +541,24 @@ button:active {
     display: flex;
     justify-content: center;
 }
-/* Desktop Viewing */
+/* Tablet & desktop viewing */
 @media screen and (min-width: 700px) {
     .App { overflow: hidden; }
-    header nav {flex-basis: 50vw;}
-    #subNav { flex-basis: 50%; }
-    #report { width: 50%; }
+    header nav { flex-basis: 60vw; max-width: 540px; }
+    #reportMenu { width: min(90%, 440px); }
+    #report { width: min(92%, 660px); border-radius: var(--radius-lg); }
     #list {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 30%;
+        flex-direction: column;
+        gap: 1.25rem;
     }
-    .listItem { width: 90%; }
+    .listItem {
+        width: 100%;
+        margin: 0;
+    }
     #dashboard { align-items: center; }
     .widget { width: 30%; }
 }
@@ -476,26 +568,36 @@ button:active {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 900;
+    z-index: 1000;
     pointer-events: none;
+    background-color: rgba(16, 42, 67, 0.45);
+    backdrop-filter: blur(3px);
+    animation: overlayFade 0.25s ease-out;
+}
+@keyframes overlayFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 .overlay2 { z-index: 1900; }
 .modalWrap {
     position: fixed;
     top: 5vh;
+    top: 5dvh;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 1000;
-    background-color: #fff;
+    z-index: 1001;
+    background-color: var(--surface);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 #addModal form {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    height: 50vh;
+    min-height: 50vh;
+    min-height: 50dvh;
 }
 .modal {
     padding: 1rem;
@@ -516,26 +618,18 @@ button:active {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1.25rem;
 }
 .formInputRow {
     display: flex;
     flex-direction: column;
-    flex-basis: 10%;
+    gap: 0.4rem;
 }
-#editForm > :nth-child(3) {
-    display: flex;
-    justify-content: space-between;
-    width: 70%;
-    margin-left: 15%;
-    flex-basis: 30%;
+#editForm label {
+    font-weight: 600;
 }
 #editForm > .half {
-    flex-basis: 20%;
-}
-#editForm label,
-#editForm input {
-    font-size: 1.5rem;
+    margin-top: auto;
 }
 .productManagementModal {
     padding: 1rem;
@@ -545,25 +639,34 @@ button:active {
     right: 0;
     bottom: 0;
     z-index: 2000;
-    width: 100vw;
-    height: 95vh;
-    background-color: #FFF;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    background-color: var(--surface);
 }
 .productManagementCloseBtn {
     position: fixed;
     top: 5vh;
+    top: 5dvh;
     right: 1rem;
     z-index: 3000;
     padding: 0;
-    width: 3rem;
-    height: 3rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-height: 0;
     user-select: none;
     background-image: url(../media/close.svg);
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 100%;
+    background-size: 85%;
+    background-color: transparent;
     border: none;
+    border-radius: 100%;
+    transition: background-color var(--speed), transform var(--speed);
 }
+.productManagementCloseBtn:hover { background-color: var(--surface-2); }
+.productManagementCloseBtn:active { transform: scale(0.9); background-color: var(--border); }
 #editForm .addProductSection {
     height: 20vh;
     margin-top: 5vh;
@@ -574,26 +677,30 @@ button:active {
 }
 #editForm .productListWrap {
     height: 60vh;
-    overflow-y: scroll;
+    height: 60dvh;
+    overflow-y: auto;
 }
 #editForm .modalButtonsRow {
     display: flex;
     justify-content: space-around;
     height: 11vh;
+    height: 11dvh;
 }
 #editForm .productList {
     list-style-type: none;
     padding: 0;
     padding-top: 1rem;
-    height: 80vh;
     overflow-x: hidden;
 }
 .productListHeader {
     display: flex;
     position: sticky;
     top: 0;
-    background-color: #FFF;
+    background-color: var(--surface);
     text-align: center;
+    font-weight: bold;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
 }
 .productListItem {
     height: 3rem;
@@ -627,19 +734,27 @@ button:active {
 }
 
 .productRemoveBtn {
-    border: 2px solid #000;
     padding: 0;
-    width: 2rem;
-    height: 2rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    min-height: 0;
     background-image: url(../media/close.svg);
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 80%;
+    background-size: 70%;
+    background-color: transparent;
     user-select: none;
-    border-color: red;
+    border: 2px solid var(--error);
+    border-radius: 100%;
+    transition: background-color var(--speed), transform var(--speed);
+}
+.productRemoveBtn:hover {
+    background-color: #fdeaea;
+    box-shadow: none;
 }
 .productRemoveBtn:active {
     background-color: transparent;
+    transform: scale(0.9);
 }
 .productListItem.removed {
     opacity: 50%;
@@ -650,5 +765,52 @@ button:active {
 }
 .productRemoveBtn.undo {
     transform: rotate(135deg);
-    border-color: green;
+    border-color: var(--success);
+}
+.productRemoveBtn.undo:hover {
+    background-color: #e8f6ee;
+}
+.productRemoveBtn.undo:active {
+    transform: rotate(135deg) scale(0.9);
+}
+
+/* Desktop: present full-screen panels as centered dialog cards */
+@media screen and (min-width: 700px) {
+    .modalWrap {
+        top: 0;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+    }
+    .modalWrap > .modal {
+        width: min(90vw, 520px);
+        height: auto;
+        max-height: 88dvh;
+        overflow-y: auto;
+        flex-grow: 0;
+        background-color: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+    }
+    #addModal form { min-height: 0; }
+    .productManagementModal {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: min(90vw, 560px);
+        height: auto;
+        max-height: 88dvh;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+    }
+    .productManagementCloseBtn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+    #editForm .addProductSection { height: auto; margin-top: 2.5rem; }
+    #editForm .productListWrap { height: auto; max-height: 48dvh; }
+    #editForm .modalButtonsRow { height: auto; padding-top: 1rem; }
 }

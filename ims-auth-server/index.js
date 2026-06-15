@@ -5,8 +5,12 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
-// Protected using Render.com environment variables
-const URL = `mongodb+srv://${process.env.USER}:${process.env.PASS}${process.env.DATABASE_URL}`;
+// Protected using Render.com environment variables.
+// Prefer namespaced DB_USER/DB_PASS; fall back to USER/PASS for existing deployments.
+// NOTE: USER is a built-in env var on many systems, so DB_USER is the safer name to set.
+const DB_USER = process.env.DB_USER || process.env.USER;
+const DB_PASS = process.env.DB_PASS || process.env.PASS;
+const URL = `mongodb+srv://${DB_USER}:${DB_PASS}${process.env.DATABASE_URL}`;
 
 // Establish database connection
 mongoose.connect(URL).then(() => {
